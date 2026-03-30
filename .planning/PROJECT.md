@@ -52,7 +52,9 @@ When a user describes a musical vibe in plain language, they hear it immediately
 - Spotify Web API (OAuth 2.0 PKCE, Recommendations, Search, Player)
 - Claude API (Sonnet for speed, Opus for complex curation)
 - ElevenLabs API for voice synthesis
-- Vercel deployment (primary) or Mac Mini self-hosted (zero cost option)
+- Vercel deployment: dylan-monday/vibe-dj
+- Production URL: https://tunes.dylandibona.com
+- Git repo: dylan-monday account
 
 **Design Direction:**
 - Dark synthwave aesthetic — deep purples, magentas, cyans against warm dark backgrounds
