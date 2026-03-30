@@ -12,7 +12,7 @@ Vibe DJ transforms natural language mood descriptions into curated Spotify playb
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Spotify Foundation** - OAuth authentication, device selection, token management
+- [x] **Phase 1: Spotify Foundation** - OAuth authentication, device selection, token management (completed 2026-03-30)
 - [ ] **Phase 2: Playback Core** - Now playing display, basic controls, queue visibility
 - [ ] **Phase 3: Chat Interface** - Conversational UI, message threading, input handling
 - [ ] **Phase 4: AI Curation** - Vibe interpretation (Claude), recommendation engine (Spotify), session memory
@@ -156,7 +156,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Spotify Foundation | 0/TBD | Not started | - |
+| 1. Spotify Foundation | 0/TBD | Complete    | 2026-03-30 |
 | 2. Playback Core | 0/TBD | Not started | - |
 | 3. Chat Interface | 0/TBD | Not started | - |
 | 4. AI Curation | 0/TBD | Not started | - |
