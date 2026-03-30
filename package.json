@@ -9,13 +9,17 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@spotify/web-api-ts-sdk": "^1.2.0",
+    "framer-motion": "^12.38.0",
     "next": "16.2.1",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "swr": "^2.4.1",
+    "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^20.19.37",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
