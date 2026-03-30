@@ -22,7 +22,6 @@ export interface SpotifyDevice {
   name: string;
   type: string; // "Computer", "Smartphone", "Speaker", etc.
   volume_percent: number | null;
-  supports_volume: boolean;
 }
 
 // Playback state (subset of SDK's PlaybackState)
