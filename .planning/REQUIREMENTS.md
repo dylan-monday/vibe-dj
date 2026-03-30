@@ -440,7 +440,7 @@ These are explicitly NOT included in v1:
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 1 | Pending |
+| AUTH-01 | Phase 1 | Complete |
 | AUTH-02 | Phase 1 | Pending |
 | UI-03 | Phase 1 | Pending |
 | PLAY-01 | Phase 2 | Pending |
