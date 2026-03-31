@@ -18,7 +18,8 @@ export default function Home() {
   const { activeDevice, currentTrack } = usePlaybackStore();
   const [showQueue, setShowQueue] = useState(false);
 
-  usePlaybackPolling();
+  // Only poll once a device is selected — avoids rate limiting during device picker
+  usePlaybackPolling(!!activeDevice);
 
   // Loading
   if (isLoading) {

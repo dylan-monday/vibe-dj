@@ -13,7 +13,7 @@ const ACTIVE_POLL_INTERVAL = 5000; // 5 seconds when playing
 const PAUSED_POLL_INTERVAL = 15000; // 15 seconds when paused
 const MAX_BACKOFF = 60000; // Max 60 seconds
 
-export function usePlaybackPolling() {
+export function usePlaybackPolling(enabled = true) {
   const { isAuthenticated } = useAuthStore();
   const {
     updatePlaybackState,
@@ -69,7 +69,7 @@ export function usePlaybackPolling() {
   }, [updatePlaybackState, addToHistory, advanceQueue, currentTrack]);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !enabled) {
       // Clear interval if not authenticated
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -126,7 +126,7 @@ export function usePlaybackPolling() {
       }
       stopPolling();
     };
-  }, [poll, isPlaying, isAuthenticated, startPolling, stopPolling, setPollingInterval]);
+  }, [poll, isPlaying, isAuthenticated, enabled, startPolling, stopPolling, setPollingInterval]);
 
   return { poll }; // Expose manual poll trigger
 }

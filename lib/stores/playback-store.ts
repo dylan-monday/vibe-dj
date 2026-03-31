@@ -65,6 +65,25 @@ interface PlaybackStore {
   setPollingInterval: (ms: number) => void;
 }
 
+// Persist selected device across sessions
+const DEVICE_KEY = "vibe-dj-active-device";
+
+function saveDevice(device: SpotifyDevice): void {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(DEVICE_KEY, JSON.stringify(device));
+  }
+}
+
+function loadSavedDevice(): SpotifyDevice | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const stored = localStorage.getItem(DEVICE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    return null;
+  }
+}
+
 // Debounce helper for volume changes
 let volumeDebounceTimer: NodeJS.Timeout | null = null;
 
@@ -94,11 +113,24 @@ export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
 
   // Fetch available devices
   fetchDevices: async () => {
+    // Restore previously selected device from localStorage first
+    const savedDevice = loadSavedDevice();
+    if (savedDevice && !get().activeDevice) {
+      set({ activeDevice: savedDevice });
+    }
+
     set({ isLoadingDevices: true, deviceError: null });
 
     try {
       const devices = await getDevices();
-      const active = devices.find((d) => d.is_active) || null;
+      // Prefer the Spotify-reported active device, fall back to our saved one
+      const spotifyActive = devices.find((d) => d.is_active) || null;
+      const restoredDevice = savedDevice
+        ? devices.find((d) => d.id === savedDevice.id) || null
+        : null;
+      const active = spotifyActive || restoredDevice || null;
+
+      if (active) saveDevice(active);
 
       set({
         devices,
@@ -133,7 +165,8 @@ export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
     try {
       await transferPlayback(deviceId, false);
 
-      // Update active device optimistically
+      // Persist selection and update state
+      saveDevice(device);
       set({
         activeDevice: device,
         devices: devices.map((d) => ({
