@@ -56,13 +56,17 @@ export function usePlaybackPolling(enabled = true) {
         advanceQueue(state.track.id);
       }
 
-      // Reset backoff on successful poll while playing
-      if (state?.isPlaying) {
-        backoffRef.current = PAUSED_POLL_INTERVAL;
-      }
+      // Reset backoff on successful poll
+      backoffRef.current = PAUSED_POLL_INTERVAL;
+      usePlaybackStore.getState().setPollingError(null);
     } catch (error) {
-      console.error("Playback polling error:", error);
-      // Don't crash polling on error, just skip this cycle
+      const msg = error instanceof Error ? error.message : "Polling failed";
+      const isRateLimit = msg.toLowerCase().includes("rate") || msg.toLowerCase().includes("exceeded");
+      usePlaybackStore.getState().setPollingError(isRateLimit ? "rate_limited" : msg);
+      // Back off aggressively on rate limit — stop hammering the API
+      if (isRateLimit) {
+        backoffRef.current = 60000; // 60s before next attempt
+      }
     } finally {
       isPollingRef.current = false;
     }

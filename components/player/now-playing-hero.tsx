@@ -21,6 +21,7 @@ export function NowPlayingHero({ onQueueToggle, showQueue }: NowPlayingHeroProps
     currentTrack,
     isPlaying,
     progressMs,
+    pollingError,
     togglePlayPause,
     skipToNext,
     skipToPrevious,
@@ -32,13 +33,28 @@ export function NowPlayingHero({ onQueueToggle, showQueue }: NowPlayingHeroProps
     return (
       <div className="flex flex-col items-center gap-6 text-center">
         <div className="w-48 h-48 rounded-2xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center">
-          <svg className="w-16 h-16 text-foreground/10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-          </svg>
+          {pollingError === "rate_limited" ? (
+            <svg className="w-12 h-12 text-amber-400/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+          ) : (
+            <svg className="w-16 h-16 text-foreground/10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+            </svg>
+          )}
         </div>
         <div>
-          <p className="text-lg font-display text-foreground/20">Nothing playing</p>
-          <p className="text-sm text-foreground/10 mt-1">Describe a vibe below</p>
+          {pollingError === "rate_limited" ? (
+            <>
+              <p className="text-sm font-medium text-amber-400/70">Spotify rate limited</p>
+              <p className="text-xs text-foreground/30 mt-1">Retrying in ~60s — open Spotify and play something</p>
+            </>
+          ) : (
+            <>
+              <p className="text-lg font-display text-foreground/20">Nothing playing</p>
+              <p className="text-sm text-foreground/10 mt-1">Describe a vibe below</p>
+            </>
+          )}
         </div>
       </div>
     );

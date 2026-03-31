@@ -40,6 +40,7 @@ interface PlaybackStore {
 
   // Error state
   playbackError: string | null;
+  pollingError: string | null;
 
   // Actions - Device management
   fetchDevices: () => Promise<void>;
@@ -63,6 +64,7 @@ interface PlaybackStore {
   startPolling: () => void;
   stopPolling: () => void;
   setPollingInterval: (ms: number) => void;
+  setPollingError: (error: string | null) => void;
 }
 
 // Persist selected device across sessions
@@ -110,6 +112,7 @@ export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
 
   // Error state
   playbackError: null,
+  pollingError: null,
 
   // Fetch available devices
   fetchDevices: async () => {
@@ -347,5 +350,9 @@ export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
 
   setPollingInterval: (ms: number) => {
     set({ pollingInterval: ms });
+  },
+
+  setPollingError: (error: string | null) => {
+    set({ pollingError: error });
   },
 }));
