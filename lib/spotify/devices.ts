@@ -6,6 +6,9 @@ import { SpotifyDevice } from "./types";
 import { ensureValidToken } from "./auth";
 import { SpotifyApiError, withErrorHandling } from "./errors";
 
+// Re-export SpotifyApiError for consumers
+export { SpotifyApiError };
+
 // Get available devices
 export async function getDevices(): Promise<SpotifyDevice[]> {
   await ensureValidToken();

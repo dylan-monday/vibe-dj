@@ -24,26 +24,29 @@ export async function getPlaybackState(): Promise<PlaybackState | null> {
       }
 
       // Map SDK response to our PlaybackState type
+      // Only handle tracks, not episodes/podcasts
+      const track = state.item.type === "track" && "artists" in state.item ? {
+        id: state.item.id,
+        name: state.item.name,
+        artists: state.item.artists.map((a: { id: string; name: string }) => ({
+          id: a.id,
+          name: a.name,
+        })),
+        album: {
+          id: state.item.album.id,
+          name: state.item.album.name,
+          images: state.item.album.images.map((img: { url: string; width: number; height: number }) => ({
+            url: img.url,
+            width: img.width,
+            height: img.height,
+          })),
+        },
+        durationMs: state.item.duration_ms,
+      } : null;
+
       return {
         isPlaying: state.is_playing,
-        track: state.item.type === "track" ? {
-          id: state.item.id,
-          name: state.item.name,
-          artists: state.item.artists.map((a) => ({
-            id: a.id,
-            name: a.name,
-          })),
-          album: {
-            id: state.item.album.id,
-            name: state.item.album.name,
-            images: state.item.album.images.map((img) => ({
-              url: img.url,
-              width: img.width,
-              height: img.height,
-            })),
-          },
-          durationMs: state.item.duration_ms,
-        } : null,
+        track,
         progressMs: state.progress_ms || 0,
         device: state.device ? {
           id: state.device.id,
@@ -74,7 +77,8 @@ export async function play(): Promise<void> {
   }
 
   return withErrorHandling(async () => {
-    await client.player.startResumePlayback();
+    // Pass empty string to use currently active device
+    await client.player.startResumePlayback("");
   });
 }
 
@@ -87,7 +91,8 @@ export async function pause(): Promise<void> {
   }
 
   return withErrorHandling(async () => {
-    await client.player.pausePlayback();
+    // Pass empty string to use currently active device
+    await client.player.pausePlayback("");
   });
 }
 
@@ -100,7 +105,8 @@ export async function skipNext(): Promise<void> {
   }
 
   return withErrorHandling(async () => {
-    await client.player.skipToNext();
+    // Pass empty string to use currently active device
+    await client.player.skipToNext("");
   });
 }
 
@@ -113,7 +119,8 @@ export async function skipPrevious(): Promise<void> {
   }
 
   return withErrorHandling(async () => {
-    await client.player.skipToPrevious();
+    // Pass empty string to use currently active device
+    await client.player.skipToPrevious("");
   });
 }
 
