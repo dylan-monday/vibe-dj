@@ -5,11 +5,12 @@ import { useChatStore } from "@/lib/stores/chat-store";
 import { useVibeCuration } from "@/lib/hooks/use-vibe-curation";
 import { ChatMessage } from "./chat-message";
 import { ChatInput } from "./chat-input";
+import { QuickActions } from "./quick-actions";
 
 export function ChatPanel() {
   const { messages, isLoading, currentError, addMessage, retryLastMessage } =
     useChatStore();
-  const { processVibe, currentStep } = useVibeCuration();
+  const { processVibe, processRefinement, currentStep } = useVibeCuration();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom on new messages
@@ -29,6 +30,20 @@ export function ChatPanel() {
     const prompt = retryLastMessage();
     if (prompt) {
       await processVibe(prompt);
+    }
+  };
+
+  const handleQuickAction = async (actionId: string) => {
+    const actionMessages: Record<string, string> = {
+      energy_up: "more energy",
+      energy_down: "calmer please",
+      more_like_this: "more like this",
+    };
+
+    const message = actionMessages[actionId];
+    if (message) {
+      addMessage({ role: "user", content: message });
+      await processRefinement(message);
     }
   };
 
@@ -113,6 +128,9 @@ export function ChatPanel() {
           <span className="text-sm">{getLoadingMessage()}</span>
         </div>
       )}
+
+      {/* Quick actions */}
+      <QuickActions onAction={handleQuickAction} isDisabled={isLoading} />
 
       {/* Input area */}
       <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />
