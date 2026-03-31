@@ -11,6 +11,8 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
     "@spotify/web-api-ts-sdk": "^1.2.0",
+    "better-sqlite3": "^12.8.0",
+    "drizzle-orm": "^0.45.2",
     "framer-motion": "^12.38.0",
     "next": "16.2.1",
     "react": "19.2.4",
@@ -20,9 +22,11 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20.19.37",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
     "tailwindcss": "^4",
