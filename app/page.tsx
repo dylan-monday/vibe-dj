@@ -13,13 +13,14 @@ import {
   QueueList,
   HistoryList,
 } from "@/components/player";
+import { ChatPanel } from "@/components/chat";
 
-type TabId = "queue" | "history";
+type TabId = "chat" | "queue" | "history";
 
 export default function Home() {
   const { isAuthenticated, isLoading, user } = useAuthStore();
   const { activeDevice, currentTrack } = usePlaybackStore();
-  const [activeTab, setActiveTab] = useState<TabId>("queue");
+  const [activeTab, setActiveTab] = useState<TabId>("chat");
 
   // Start polling when authenticated
   // This hook handles Page Visibility and interval management
@@ -98,10 +99,20 @@ export default function Home() {
               <VolumeSlider />
             </section>
 
-            {/* Queue/History tabs */}
+            {/* Chat/Queue/History tabs */}
             <section className="flex-1 flex flex-col border-t border-surface mt-4">
               {/* Tab headers */}
               <div className="flex border-b border-surface">
+                <button
+                  onClick={() => setActiveTab("chat")}
+                  className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                    activeTab === "chat"
+                      ? "text-primary border-b-2 border-primary"
+                      : "text-foreground/60 hover:text-foreground"
+                  }`}
+                >
+                  Chat
+                </button>
                 <button
                   onClick={() => setActiveTab("queue")}
                   className={`flex-1 py-3 text-sm font-medium transition-colors ${
@@ -125,7 +136,8 @@ export default function Home() {
               </div>
 
               {/* Tab content */}
-              <div className="flex-1 bg-surface/30">
+              <div className="flex-1 bg-surface/30 flex flex-col min-h-[300px]">
+                {activeTab === "chat" && <ChatPanel />}
                 {activeTab === "queue" && <QueueList maxTracks={10} />}
                 {activeTab === "history" && <HistoryList maxTracks={20} />}
               </div>
