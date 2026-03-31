@@ -13,7 +13,7 @@ Vibe DJ transforms natural language mood descriptions into curated Spotify playb
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Spotify Foundation** - OAuth authentication, device selection, token management (completed 2026-03-30)
-- [ ] **Phase 2: Playback Core** - Now playing display, basic controls, queue visibility
+- [x] **Phase 2: Playback Core** - Now playing display, basic controls, queue visibility (completed 2026-03-31)
 - [ ] **Phase 3: Chat Interface** - Conversational UI, message threading, input handling
 - [ ] **Phase 4: AI Curation** - Vibe interpretation (Claude), recommendation engine (Spotify), session memory
 - [ ] **Phase 5: Refinement Loop** - Real-time feedback, queue adjustments, search fallback
@@ -68,7 +68,10 @@ Plans:
   3. Loading state shows while AI processes request (visual feedback under 3 seconds)
   4. Chat history persists during session (survives page reloads)
   5. Error messages display clearly with retry options
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [x] 03-01-chat-store-PLAN.md — Chat types and Zustand store with sessionStorage persistence
+- [ ] 03-02-chat-ui-PLAN.md — Chat input, message display, and page integration
 **UI hint**: yes
 
 ### Phase 4: AI Curation
@@ -165,8 +168,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Spotify Foundation | 3/3 | Complete    | 2026-03-30 |
-| 2. Playback Core | 0/3 | Planned | - |
-| 3. Chat Interface | 0/TBD | Not started | - |
+| 2. Playback Core | 3/3 | Complete    | 2026-03-31 |
+| 3. Chat Interface | 0/2 | Planned | - |
 | 4. AI Curation | 0/TBD | Not started | - |
 | 5. Refinement Loop | 0/TBD | Not started | - |
 | 6. Queue Management | 0/TBD | Not started | - |

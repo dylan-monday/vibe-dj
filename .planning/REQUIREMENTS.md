@@ -448,7 +448,7 @@ These are explicitly NOT included in v1:
 | PLAY-03 | Phase 2 | Complete |
 | PLAY-05 | Phase 2 | Complete |
 | UI-01 | Phase 2 | Complete |
-| CURA-01 | Phase 3 | Pending |
+| CURA-01 | Phase 3 | Complete |
 | CURA-02 | Phase 4 | Pending |
 | CURA-03 | Phase 4 | Pending |
 | CURA-04 | Phase 4 | Pending |
