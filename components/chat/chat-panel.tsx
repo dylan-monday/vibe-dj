@@ -11,7 +11,8 @@ import { SessionActions } from "./session-actions";
 export function ChatPanel() {
   const { messages, isLoading, currentError, addMessage, retryLastMessage } =
     useChatStore();
-  const { processVibe, processRefinement, currentStep } = useVibeCuration();
+  const { processVibe, processRefinement, currentStep, pendingClarification } =
+    useVibeCuration();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom on new messages
@@ -43,6 +44,12 @@ export function ChatPanel() {
       addMessage({ role: "user", content: message });
       await processRefinement(message);
     }
+  };
+
+  // Handle selecting a clarification option
+  const handleClarificationOption = async (option: string) => {
+    addMessage({ role: "user", content: option });
+    await processVibe(option);
   };
 
   // Step-specific loading message
@@ -105,6 +112,28 @@ export function ChatPanel() {
         )}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Clarification options */}
+      {pendingClarification?.options && pendingClarification.options.length > 0 && (
+        <div className="flex flex-wrap gap-2 px-4 py-3 border-t border-white/5">
+          {pendingClarification.options.map((option, index) => (
+            <button
+              key={index}
+              onClick={() => handleClarificationOption(option)}
+              disabled={isLoading}
+              className={`
+                px-4 py-2 rounded-full text-sm
+                btn-ghost transition-all duration-200
+                disabled:opacity-40 disabled:cursor-not-allowed
+                hover:scale-105 active:scale-95
+                border border-primary/30 hover:border-primary/60
+              `}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Loading indicator */}
       {isLoading && (

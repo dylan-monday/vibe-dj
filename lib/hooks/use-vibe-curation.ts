@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import { useChatStore } from "@/lib/stores/chat-store";
 import { useSessionStore } from "@/lib/stores/session-store";
 import { usePlaybackStore } from "@/lib/stores/playback-store";
+import { useQueueStore } from "@/lib/stores/queue-store";
 import {
   getRecommendations,
   playTracks,
@@ -12,19 +13,39 @@ import {
   searchTracks,
 } from "@/lib/spotify";
 import { VibeInterpretation } from "@/lib/chat/types";
-import { Track } from "@/lib/spotify/types";
+import { Track, QueueTrack } from "@/lib/spotify/types";
 import { RefinementResult } from "@/lib/ai/types";
+
+// Convert Track to QueueTrack format
+function trackToQueueTrack(track: Track): QueueTrack {
+  return {
+    id: track.id,
+    name: track.name,
+    artists: track.artists,
+    album: track.album,
+    durationMs: track.durationMs,
+    addedAt: Date.now(),
+  };
+}
+
+interface ClarificationQuestion {
+  question: string;
+  options?: string[];
+}
 
 interface CurationState {
   isProcessing: boolean;
   currentStep: "idle" | "interpreting" | "recommending" | "playing";
   error: string | null;
+  pendingClarification: ClarificationQuestion | null;
 }
 
 interface CurationResult {
   success: boolean;
   tracks?: Track[];
   interpretation?: VibeInterpretation;
+  needsClarification?: boolean;
+  clarification?: ClarificationQuestion;
   error?: string;
 }
 
@@ -33,11 +54,13 @@ export function useVibeCuration() {
     isProcessing: false,
     currentStep: "idle",
     error: null,
+    pendingClarification: null,
   });
 
   const { addMessage, addErrorMessage, setLoading } = useChatStore();
   const { getSessionContext, addVibe, addPlayedTracks, addExclusions } =
     useSessionStore();
+  const { setUpcoming } = useQueueStore();
 
   const processVibe = useCallback(
     async (userMessage: string): Promise<CurationResult> => {
@@ -45,6 +68,7 @@ export function useVibeCuration() {
         isProcessing: true,
         currentStep: "interpreting",
         error: null,
+        pendingClarification: null,
       });
       setLoading(true);
 
@@ -83,6 +107,35 @@ export function useVibeCuration() {
           };
         } else {
           const data = await interpretResponse.json();
+
+          // Check if Claude is asking for clarification
+          if (data.needsClarification) {
+            const clarification: ClarificationQuestion = {
+              question: data.clarification.question,
+              options: data.clarification.options,
+            };
+
+            // Show clarifying question to user
+            addMessage({
+              role: "assistant",
+              content: clarification.question,
+            });
+
+            setState({
+              isProcessing: false,
+              currentStep: "idle",
+              error: null,
+              pendingClarification: clarification,
+            });
+            setLoading(false);
+
+            return {
+              success: true,
+              needsClarification: true,
+              clarification,
+            };
+          }
+
           interpretation = data.interpretation;
         }
 
@@ -101,6 +154,9 @@ export function useVibeCuration() {
           await playTracks(trackIds);
           addPlayedTracks(trackIds);
 
+          // Update queue UI (skip first track since it's now playing)
+          setUpcoming(searchResults.slice(1).map(trackToQueueTrack));
+
           const trackPreview = searchResults
             .slice(0, 3)
             .map((t) => `"${t.name}" by ${t.artists[0]?.name}`)
@@ -111,7 +167,7 @@ export function useVibeCuration() {
             content: `Searching for "${userMessage}"... Found ${trackPreview}${searchResults.length > 3 ? ` and ${searchResults.length - 3} more.` : "."}`,
           });
 
-          setState({ isProcessing: false, currentStep: "idle", error: null });
+          setState({ isProcessing: false, currentStep: "idle", error: null, pendingClarification: null });
           setLoading(false);
           return { success: true, tracks: searchResults };
         }
@@ -176,7 +232,8 @@ export function useVibeCuration() {
         // Update session with played tracks
         addPlayedTracks(trackIds);
 
-        // Playback state will update via polling within 3 seconds
+        // Update queue UI (skip first track since it's now playing)
+        setUpcoming(tracks.slice(1).map(trackToQueueTrack));
 
         // Generate assistant response
         const genres = interpretation.genres.slice(0, 3).join(", ");
@@ -198,7 +255,7 @@ export function useVibeCuration() {
 
         addMessage({ role: "assistant", content: assistantMessage });
 
-        setState({ isProcessing: false, currentStep: "idle", error: null });
+        setState({ isProcessing: false, currentStep: "idle", error: null, pendingClarification: null });
         setLoading(false);
 
         return { success: true, tracks, interpretation };
@@ -217,6 +274,7 @@ export function useVibeCuration() {
           isProcessing: false,
           currentStep: "idle",
           error: errorMessage,
+          pendingClarification: null,
         });
         setLoading(false);
 
@@ -231,12 +289,13 @@ export function useVibeCuration() {
       addVibe,
       addPlayedTracks,
       addExclusions,
+      setUpcoming,
     ]
   );
 
   const processRefinement = useCallback(
     async (userMessage: string): Promise<CurationResult> => {
-      setState({ isProcessing: true, currentStep: "interpreting", error: null });
+      setState({ isProcessing: true, currentStep: "interpreting", error: null, pendingClarification: null });
       setLoading(true);
 
       try {
@@ -316,6 +375,10 @@ export function useVibeCuration() {
         await addToQueue(trackIds);
         addPlayedTracks(trackIds);
 
+        // Append to queue UI
+        const currentUpcoming = useQueueStore.getState().upcomingTracks;
+        setUpcoming([...currentUpcoming, ...tracks.map(trackToQueueTrack)]);
+
         // Store adjusted vibe
         addVibe(adjustedVibe);
         if (refinement.exclusions) {
@@ -347,7 +410,7 @@ export function useVibeCuration() {
 
         addMessage({ role: "assistant", content: responseMessage });
 
-        setState({ isProcessing: false, currentStep: "idle", error: null });
+        setState({ isProcessing: false, currentStep: "idle", error: null, pendingClarification: null });
         setLoading(false);
 
         return { success: true, tracks, interpretation: adjustedVibe };
@@ -364,6 +427,7 @@ export function useVibeCuration() {
           isProcessing: false,
           currentStep: "idle",
           error: errorMessage,
+          pendingClarification: null,
         });
         setLoading(false);
         return { success: false, error: errorMessage };
@@ -378,6 +442,7 @@ export function useVibeCuration() {
       addVibe,
       addPlayedTracks,
       addExclusions,
+      setUpcoming,
     ]
   );
 

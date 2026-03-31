@@ -3,10 +3,18 @@
 
 export type { VibeInterpretation } from "@/lib/chat/types";
 
+// Clarification question when vibe is ambiguous
+export interface ClarificationQuestion {
+  question: string;
+  options?: string[]; // Quick suggestions the user can tap
+}
+
 // Claude API response wrapper
 export interface InterpretationResult {
   success: boolean;
   interpretation?: import("@/lib/chat/types").VibeInterpretation;
+  needsClarification?: boolean;
+  clarification?: ClarificationQuestion;
   error?: string;
   responseTimeMs: number;
 }

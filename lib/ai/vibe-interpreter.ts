@@ -3,7 +3,7 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import { VibeInterpretation } from "@/lib/chat/types";
-import { InterpretationResult, SessionContext } from "./types";
+import { InterpretationResult, SessionContext, ClarificationQuestion } from "./types";
 import {
   VIBE_INTERPRETER_SYSTEM_PROMPT,
   VIBE_INTERPRETER_USER_TEMPLATE,
@@ -11,6 +11,19 @@ import {
 
 // Initialize Anthropic client (server-side only)
 const anthropic = new Anthropic();
+
+// Response type from Claude can be clarification or interpretation
+interface ClarificationResponse {
+  needsClarification: true;
+  question: string;
+  options?: string[];
+}
+
+interface DirectInterpretationResponse extends VibeInterpretation {
+  needsClarification: false;
+}
+
+type ClaudeResponse = ClarificationResponse | DirectInterpretationResponse;
 
 export async function interpretVibe(
   userMessage: string,
@@ -50,7 +63,25 @@ export async function interpretVibe(
 
     // Parse JSON response
     try {
-      const interpretation = JSON.parse(textContent.text) as VibeInterpretation;
+      const parsed = JSON.parse(textContent.text) as ClaudeResponse;
+
+      // Check if Claude is asking for clarification
+      if (parsed.needsClarification === true) {
+        const clarificationResponse = parsed as ClarificationResponse;
+        const clarification: ClarificationQuestion = {
+          question: clarificationResponse.question,
+          options: clarificationResponse.options,
+        };
+        return {
+          success: true,
+          needsClarification: true,
+          clarification,
+          responseTimeMs,
+        };
+      }
+
+      // Otherwise, it's a direct interpretation
+      const interpretation = parsed as VibeInterpretation;
 
       // Validate required fields
       if (!interpretation.genres || !Array.isArray(interpretation.genres)) {
@@ -100,6 +131,7 @@ export async function interpretVibe(
 
       return {
         success: true,
+        needsClarification: false,
         interpretation,
         responseTimeMs,
       };

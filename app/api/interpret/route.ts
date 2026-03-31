@@ -22,7 +22,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Return clarification if needed
+    if (result.needsClarification) {
+      return NextResponse.json({
+        needsClarification: true,
+        clarification: result.clarification,
+        responseTimeMs: result.responseTimeMs,
+      });
+    }
+
+    // Return interpretation
     return NextResponse.json({
+      needsClarification: false,
       interpretation: result.interpretation,
       responseTimeMs: result.responseTimeMs,
     });

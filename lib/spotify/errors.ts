@@ -80,7 +80,26 @@ export async function withErrorHandling<T>(
       throw new SpotifyApiError("No active playback", 204);
     }
 
-    // Re-throw unknown errors
+    // Handle 404 - resource not found (often no active device)
+    if (isSpotifyError(error, 404)) {
+      throw new SpotifyApiError(
+        "No active Spotify device found. Open Spotify and start playing something first.",
+        404
+      );
+    }
+
+    // Handle 403 - forbidden (often missing scopes)
+    if (isSpotifyError(error, 403)) {
+      throw new SpotifyApiError(
+        "Permission denied. Try logging out and back in to refresh permissions.",
+        403
+      );
+    }
+
+    // Re-throw unknown errors with better formatting
+    if (error instanceof Error) {
+      throw new SpotifyApiError(error.message, 500);
+    }
     throw error;
   }
 }
