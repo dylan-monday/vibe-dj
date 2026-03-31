@@ -3,10 +3,12 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import { VibeInterpretation } from "@/lib/chat/types";
-import { InterpretationResult, SessionContext, ClarificationQuestion } from "./types";
+import { InterpretationResult, SessionContext, ClarificationQuestion, CurationResult, SuggestedTrack } from "./types";
 import {
   VIBE_INTERPRETER_SYSTEM_PROMPT,
   VIBE_INTERPRETER_USER_TEMPLATE,
+  TRACK_CURATOR_SYSTEM_PROMPT,
+  TRACK_CURATOR_USER_TEMPLATE,
 } from "./prompts";
 
 // Initialize Anthropic client (server-side only)
@@ -149,6 +151,86 @@ export async function interpretVibe(
     return {
       success: false,
       error: errorMessage,
+      responseTimeMs,
+    };
+  }
+}
+
+// Claude as direct track curator — returns specific artist/title pairs
+// Spotify search validates existence; hallucinations are filtered naturally
+export async function curateTracklist(
+  userMessage: string,
+  context?: {
+    excludedGenres?: string[];
+    excludedArtists?: string[];
+    recentTracks?: Array<{ artist: string; title: string }>;
+  }
+): Promise<CurationResult> {
+  const startTime = Date.now();
+
+  try {
+    const userPrompt = TRACK_CURATOR_USER_TEMPLATE(userMessage, context);
+
+    const response = await anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1024,
+      system: TRACK_CURATOR_SYSTEM_PROMPT,
+      messages: [{ role: "user", content: userPrompt }],
+    });
+
+    const responseTimeMs = Date.now() - startTime;
+
+    const textContent = response.content.find((c) => c.type === "text");
+    if (!textContent || textContent.type !== "text") {
+      return { success: false, error: "No response from Claude", responseTimeMs };
+    }
+
+    let parsed: {
+      needsClarification: boolean;
+      tracks?: SuggestedTrack[];
+      curatorNote?: string;
+      question?: string;
+      options?: string[];
+    };
+
+    try {
+      parsed = JSON.parse(textContent.text);
+    } catch {
+      return {
+        success: false,
+        error: `Failed to parse curator response`,
+        responseTimeMs,
+      };
+    }
+
+    if (parsed.needsClarification) {
+      return {
+        success: true,
+        needsClarification: true,
+        clarification: {
+          question: parsed.question || "Can you tell me more?",
+          options: parsed.options,
+        },
+        responseTimeMs,
+      };
+    }
+
+    if (!parsed.tracks || parsed.tracks.length === 0) {
+      return { success: false, error: "No tracks suggested", responseTimeMs };
+    }
+
+    return {
+      success: true,
+      needsClarification: false,
+      tracks: parsed.tracks,
+      curatorNote: parsed.curatorNote,
+      responseTimeMs,
+    };
+  } catch (error) {
+    const responseTimeMs = Date.now() - startTime;
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
       responseTimeMs,
     };
   }

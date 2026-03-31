@@ -57,3 +57,19 @@ export interface RefineInterpretationResult {
   error?: string;
   responseTimeMs: number;
 }
+
+// Track suggestion from Claude curator
+export interface SuggestedTrack {
+  artist: string;
+  title: string;
+}
+
+export interface CurationResult {
+  success: boolean;
+  tracks?: SuggestedTrack[];
+  curatorNote?: string;
+  needsClarification?: boolean;
+  clarification?: ClarificationQuestion;
+  error?: string;
+  responseTimeMs: number;
+}

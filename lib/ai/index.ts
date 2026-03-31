@@ -1,6 +1,6 @@
-export { interpretVibe } from "./vibe-interpreter";
+export { interpretVibe, curateTracklist } from "./vibe-interpreter";
 export { detectRefinement, applyRefinement } from "./refinement";
-export type { InterpretationResult, SessionContext } from "./types";
+export type { InterpretationResult, SessionContext, CurationResult, SuggestedTrack } from "./types";
 export type {
   RefinementType,
   RefinementResult,

@@ -56,6 +56,67 @@ export async function searchTracks(
   });
 }
 
+// Find a specific track by artist + title using Spotify field filters
+// Returns the best match or null if not found on Spotify
+export async function searchTrackExact(
+  artist: string,
+  title: string
+): Promise<Track | null> {
+  await ensureValidToken();
+  const client = getSpotifyClient();
+  if (!client) {
+    throw new SpotifyApiError("Not authenticated", 401);
+  }
+
+  return withErrorHandling(async () => {
+    // Try field-filtered search first (most precise)
+    const query = `track:"${title}" artist:"${artist}"`;
+    const results = await client.search(query, ["track"], undefined, 3);
+    const items = results.tracks?.items || [];
+
+    if (items.length > 0) {
+      const t = items[0];
+      return {
+        id: t.id,
+        name: t.name,
+        artists: t.artists.map((a) => ({ id: a.id, name: a.name })),
+        album: {
+          id: t.album.id,
+          name: t.album.name,
+          images: t.album.images.map((img) => ({
+            url: img.url,
+            width: img.width ?? 0,
+            height: img.height ?? 0,
+          })),
+        },
+        durationMs: t.duration_ms,
+      };
+    }
+
+    // Fallback: looser search
+    const fallback = await client.search(`${title} ${artist}`, ["track"], undefined, 1);
+    const fallbackItems = fallback.tracks?.items || [];
+    if (fallbackItems.length === 0) return null;
+
+    const t = fallbackItems[0];
+    return {
+      id: t.id,
+      name: t.name,
+      artists: t.artists.map((a) => ({ id: a.id, name: a.name })),
+      album: {
+        id: t.album.id,
+        name: t.album.name,
+        images: t.album.images.map((img) => ({
+          url: img.url,
+          width: img.width ?? 0,
+          height: img.height ?? 0,
+        })),
+      },
+      durationMs: t.duration_ms,
+    };
+  });
+}
+
 // Search for genre seeds - Spotify has a fixed list
 export async function getAvailableGenreSeeds(): Promise<string[]> {
   await ensureValidToken();

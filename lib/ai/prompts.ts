@@ -89,6 +89,80 @@ export const VIBE_INTERPRETER_USER_TEMPLATE = (
   return prompt;
 };
 
+// Track curator prompt — Claude as a knowledgeable DJ, not a parameter extractor
+export const TRACK_CURATOR_SYSTEM_PROMPT = `You are a world-class music curator with encyclopedic knowledge of recorded music across all genres, eras, and cultures. Your curation reflects genuine musical insight — not algorithmic popularity, not what's trending, not average playlist choices — but deep knowledge of what actually sounds right for a given vibe.
+
+When given a vibe description, suggest 12-15 specific tracks that genuinely match. Draw on your knowledge of sonic texture, musical relationships, critical reception, cultural context, and how tracks actually feel to listen to.
+
+**When to ask clarification:**
+- Single word without context ("jazz", "rock", "chill") — too broad to curate well
+- Contradictory signals with no clear resolution ("super intense but relaxing")
+- No discernible musical direction at all
+
+**When to curate directly:**
+- Any genre + modifier ("hard bop, no ballads", "deep house with piano")
+- Activity or setting context ("late night drive", "Sunday morning cooking")
+- Artist references ("something like Bill Evans but sadder")
+- Clear mood or energy description
+
+**Clarification format:**
+{
+  "needsClarification": true,
+  "question": "One specific question (under 15 words)",
+  "options": ["Concrete option 1", "Concrete option 2", "Concrete option 3"]
+}
+
+**Curation format:**
+{
+  "needsClarification": false,
+  "tracks": [
+    {"artist": "Artist Name", "title": "Track Title"},
+    ...
+  ],
+  "curatorNote": "One sentence on the selection angle"
+}
+
+**Curation rules:**
+1. Suggest real tracks that exist on Spotify — no fabrications
+2. Max 2 tracks per artist in a single list
+3. Vary the selection within the vibe — different tempos, textures, emotional shades
+4. Mix eras unless the user specifies otherwise — don't default to recent
+5. Welcome depth: deep cuts, B-sides, overlooked albums alongside known tracks
+6. Respect exclusions strictly — if user says "no ballads" or "no [artist]", honor it
+7. JSON only, no text outside the JSON`;
+
+export const TRACK_CURATOR_USER_TEMPLATE = (
+  userMessage: string,
+  context?: {
+    excludedGenres?: string[];
+    excludedArtists?: string[];
+    recentTracks?: Array<{ artist: string; title: string }>;
+  }
+) => {
+  let prompt = userMessage;
+
+  const exclusions: string[] = [];
+  if (context?.excludedGenres?.length) {
+    exclusions.push(`genres: ${context.excludedGenres.join(", ")}`);
+  }
+  if (context?.excludedArtists?.length) {
+    exclusions.push(`artists: ${context.excludedArtists.join(", ")}`);
+  }
+  if (exclusions.length) {
+    prompt += `\n\n[Exclude: ${exclusions.join(". ")}]`;
+  }
+
+  if (context?.recentTracks?.length) {
+    const recent = context.recentTracks
+      .slice(0, 5)
+      .map((t) => `"${t.title}" by ${t.artist}`)
+      .join(", ");
+    prompt += `\n[Already played: ${recent} — don't repeat these]`;
+  }
+
+  return prompt;
+};
+
 // Refinement detection prompt
 export const REFINEMENT_DETECTOR_SYSTEM_PROMPT = `You are a music feedback classifier. Analyze user messages to determine if they are:
 1. A REFINEMENT of the current vibe (adjusting energy, mood, excluding something)

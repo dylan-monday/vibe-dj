@@ -11,6 +11,7 @@ import {
   playTracks,
   addToQueue,
   searchTracks,
+  searchTrackExact,
 } from "@/lib/spotify";
 import { VibeInterpretation } from "@/lib/chat/types";
 import { Track, QueueTrack } from "@/lib/spotify/types";
@@ -80,10 +81,9 @@ export function useVibeCuration() {
         setState((s) => ({ ...s, currentStep: "interpreting" }));
 
         const context = getSessionContext();
-        let interpretation: VibeInterpretation;
-        let interpretationFailed = false;
 
-        const interpretResponse = await fetch("/api/interpret", {
+        // Step 1: Ask Claude to curate a specific track list
+        const curateResponse = await fetch("/api/curate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -95,171 +95,91 @@ export function useVibeCuration() {
           }),
         });
 
-        if (!interpretResponse.ok) {
-          // Interpretation failed - use default vibe and search directly
-          interpretationFailed = true;
-          interpretation = {
-            genres: ["pop"],
-            energy: 0.5,
-            valence: 0.5,
-            tempo: { min: 100, max: 140 },
-            instrumentalness: 0.2,
-            exclusions: { genres: [], artists: [] },
-            seedArtists: [],
-            seedTracks: [],
+        if (!curateResponse.ok) {
+          throw new Error("Curation service unavailable");
+        }
+
+        const curateData = await curateResponse.json();
+
+        // Handle clarification request
+        if (curateData.needsClarification) {
+          const clarification: ClarificationQuestion = {
+            question: curateData.clarification.question,
+            options: curateData.clarification.options,
           };
-        } else {
-          const data = await interpretResponse.json();
 
-          // Check if Claude is asking for clarification
-          if (data.needsClarification) {
-            const clarification: ClarificationQuestion = {
-              question: data.clarification.question,
-              options: data.clarification.options,
-            };
+          addMessage({ role: "assistant", content: clarification.question });
 
-            // Show clarifying question to user
-            addMessage({
-              role: "assistant",
-              content: clarification.question,
-            });
-
-            setState({
-              isProcessing: false,
-              currentStep: "idle",
-              error: null,
-              pendingClarification: clarification,
-            });
-            setLoading(false);
-
-            return {
-              success: true,
-              needsClarification: true,
-              clarification,
-            };
-          }
-
-          interpretation = data.interpretation;
-        }
-
-        // If interpretation failed, go straight to search
-        if (interpretationFailed) {
-          setState((s) => ({ ...s, currentStep: "recommending" }));
-          const searchResults = await searchTracks(userMessage, 10);
-
-          if (searchResults.length === 0) {
-            throw new Error("Couldn't find any tracks. Try a different search.");
-          }
-
-          // Play search results
-          setState((s) => ({ ...s, currentStep: "playing" }));
-          const trackIds = searchResults.map((t) => t.id);
-          await playTracks(trackIds, getDeviceId());
-          addPlayedTracks(trackIds);
-
-          // Update queue UI (skip first track since it's now playing)
-          setUpcoming(searchResults.slice(1).map(trackToQueueTrack));
-
-          const trackPreview = searchResults
-            .slice(0, 3)
-            .map((t) => `"${t.name}" by ${t.artists[0]?.name}`)
-            .join(", ");
-
-          addMessage({
-            role: "assistant",
-            content: `Searching for "${userMessage}"... Found ${trackPreview}${searchResults.length > 3 ? ` and ${searchResults.length - 3} more.` : "."}`,
+          setState({
+            isProcessing: false,
+            currentStep: "idle",
+            error: null,
+            pendingClarification: clarification,
           });
-
-          setState({ isProcessing: false, currentStep: "idle", error: null, pendingClarification: null });
           setLoading(false);
-          return { success: true, tracks: searchResults };
+
+          return { success: true, needsClarification: true, clarification };
         }
 
-        // Store the vibe and exclusions
-        addVibe(interpretation);
-        if (interpretation.exclusions) {
-          addExclusions(
-            interpretation.exclusions.genres || [],
-            interpretation.exclusions.artists || []
-          );
-        }
-
+        // Step 2: Search Spotify for each suggested track — validate existence, filter hallucinations
         setState((s) => ({ ...s, currentStep: "recommending" }));
 
-        const { tracks: recommendedTracks } = await getRecommendations(
-          interpretation,
-          {
-            limit: 15,
-            playedTrackIds: context.playedTrackIds,
-          }
-        );
+        const suggested: Array<{ artist: string; title: string }> = curateData.tracks || [];
+        const curatorNote: string = curateData.curatorNote || "";
 
-        let tracks = recommendedTracks;
-        let usedFallback = false;
+        // Search in parallel batches to keep rate limits manageable
+        const BATCH_SIZE = 5;
+        const validatedTracks: Track[] = [];
+        const seenIds = new Set<string>(context.playedTrackIds);
 
-        // If no recommendations, try search fallback
-        if (tracks.length === 0) {
-          const searchTerms = [
-            ...interpretation.genres.slice(0, 2),
-            interpretation.energy > 0.7
-              ? "energetic"
-              : interpretation.energy < 0.3
-                ? "calm"
-                : "",
-          ]
-            .filter(Boolean)
-            .join(" ");
-
-          const searchResults = await searchTracks(
-            searchTerms || userMessage,
-            10
+        for (let i = 0; i < suggested.length && validatedTracks.length < 15; i += BATCH_SIZE) {
+          const batch = suggested.slice(i, i + BATCH_SIZE);
+          const results = await Promise.all(
+            batch.map((s) => searchTrackExact(s.artist, s.title).catch(() => null))
           );
-
-          if (searchResults.length === 0) {
-            throw new Error(
-              "No tracks found matching that vibe. Try being more specific or different genres."
-            );
+          for (const track of results) {
+            if (track && !seenIds.has(track.id)) {
+              validatedTracks.push(track);
+              seenIds.add(track.id);
+            }
           }
+        }
 
-          tracks = searchResults;
-          usedFallback = true;
+        // If we got fewer than 3 validated tracks, fall back to keyword search
+        let tracks = validatedTracks;
+        if (tracks.length < 3) {
+          const fallback = await searchTracks(userMessage, 10);
+          tracks = fallback.filter((t) => !seenIds.has(t.id));
+        }
+
+        if (tracks.length === 0) {
+          throw new Error("No tracks found for that vibe. Try describing it differently.");
         }
 
         setState((s) => ({ ...s, currentStep: "playing" }));
 
         const trackIds = tracks.map((t) => t.id);
         await playTracks(trackIds, getDeviceId());
-
-        // Update session with played tracks
         addPlayedTracks(trackIds);
 
-        // Update queue UI (skip first track since it's now playing)
+        // Update queue UI (skip first — it's now playing)
         setUpcoming(tracks.slice(1).map(trackToQueueTrack));
 
-        // Generate assistant response
-        const genres = interpretation.genres.slice(0, 3).join(", ");
         const trackPreview = tracks
           .slice(0, 3)
           .map((t: Track) => `"${t.name}" by ${t.artists[0]?.name}`)
           .join(", ");
 
-        let assistantMessage: string;
-        if (usedFallback) {
-          assistantMessage =
-            `I couldn't find perfect matches, but here's what I found: ${trackPreview}` +
-            (tracks.length > 3 ? ` and ${tracks.length - 3} more tracks.` : ".");
-        } else {
-          assistantMessage =
-            `Got it! Setting the vibe with ${genres}. Starting with ${trackPreview}` +
-            (tracks.length > 3 ? ` and ${tracks.length - 3} more tracks.` : ".");
-        }
+        const assistantMessage = curatorNote
+          ? `${curatorNote} Starting with ${trackPreview}${tracks.length > 3 ? ` and ${tracks.length - 3} more.` : "."}`
+          : `Starting with ${trackPreview}${tracks.length > 3 ? ` and ${tracks.length - 3} more.` : "."}`;
 
         addMessage({ role: "assistant", content: assistantMessage });
 
         setState({ isProcessing: false, currentStep: "idle", error: null, pendingClarification: null });
         setLoading(false);
 
-        return { success: true, tracks, interpretation };
+        return { success: true, tracks };
       } catch (error) {
         console.error("[processVibe] Error:", error);
         const errorMessage =
