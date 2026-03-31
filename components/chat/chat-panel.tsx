@@ -6,6 +6,7 @@ import { useVibeCuration } from "@/lib/hooks/use-vibe-curation";
 import { ChatMessage } from "./chat-message";
 import { ChatInput } from "./chat-input";
 import { QuickActions } from "./quick-actions";
+import { SessionActions } from "./session-actions";
 
 export function ChatPanel() {
   const { messages, isLoading, currentError, addMessage, retryLastMessage } =
@@ -131,6 +132,9 @@ export function ChatPanel() {
 
       {/* Quick actions */}
       <QuickActions onAction={handleQuickAction} isDisabled={isLoading} />
+
+      {/* Session actions (save playlist) */}
+      <SessionActions />
 
       {/* Input area */}
       <ChatInput onSubmit={handleSubmit} isLoading={isLoading} />

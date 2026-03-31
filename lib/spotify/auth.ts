@@ -5,14 +5,22 @@ import { SpotifyApi } from "@spotify/web-api-ts-sdk";
 import { TokenState } from "./types";
 import { setSpotifyClient, clearSpotifyClient, shouldRefreshToken } from "./client";
 
-// Scopes needed for Phase 1 (playback control + devices)
+// Scopes needed for full functionality
 const SCOPES = [
+  // Playback control
   "user-read-playback-state",
   "user-modify-playback-state",
   "user-read-currently-playing",
   "streaming",
+  // User info
   "user-read-email",
   "user-read-private",
+  // Library (like tracks)
+  "user-library-read",
+  "user-library-modify",
+  // Playlists (save session)
+  "playlist-modify-public",
+  "playlist-modify-private",
 ];
 
 const STORAGE_KEY = "vibe-dj-spotify-auth";
