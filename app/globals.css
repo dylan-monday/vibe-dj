@@ -13,7 +13,7 @@
   --color-surface: #27272a;
   --color-surface-elevated: #3f3f46;
 
-  --font-family-display: "Instrument Serif", serif;
+  --font-family-display: var(--font-display), "Instrument Serif", serif;
   --font-family-sans: "Satoshi", system-ui, sans-serif;
 }
 
@@ -21,4 +21,11 @@ body {
   background: var(--color-background);
   color: var(--color-foreground);
   font-family: var(--font-family-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Display font utility */
+.font-display {
+  font-family: var(--font-family-display);
 }
