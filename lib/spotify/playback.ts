@@ -165,10 +165,14 @@ export async function playTracks(trackIds: string[]): Promise<void> {
   // Convert IDs to URIs
   const uris = trackIds.map((id) => `spotify:track:${id}`);
 
+  console.log("[playTracks] Attempting to play", uris.length, "tracks...");
+
   return withErrorHandling(async () => {
     // Start playback with track URIs - let Spotify pick the active device
     // Pass empty string for device_id to use currently active device
+    console.log("[playTracks] Calling startResumePlayback...");
     await client.player.startResumePlayback("", undefined, uris);
+    console.log("[playTracks] Success!");
   });
 }
 

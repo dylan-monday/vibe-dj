@@ -74,6 +74,7 @@ export function useVibeCuration() {
 
       try {
         // Step 1: Interpret the vibe via API
+        console.log("[processVibe] Starting interpretation...");
         setState((s) => ({ ...s, currentStep: "interpreting" }));
 
         const context = getSessionContext();
@@ -182,6 +183,7 @@ export function useVibeCuration() {
         }
 
         // Step 2: Get recommendations
+        console.log("[processVibe] Getting recommendations for:", interpretation.genres);
         setState((s) => ({ ...s, currentStep: "recommending" }));
 
         const { tracks: recommendedTracks } = await getRecommendations(
@@ -224,9 +226,11 @@ export function useVibeCuration() {
         }
 
         // Step 3: Play the tracks
+        console.log("[processVibe] Got", tracks.length, "tracks, starting playback...");
         setState((s) => ({ ...s, currentStep: "playing" }));
 
         const trackIds = tracks.map((t) => t.id);
+        console.log("[processVibe] Playing track IDs:", trackIds.slice(0, 3), "...");
         await playTracks(trackIds);
 
         // Update session with played tracks
@@ -260,6 +264,7 @@ export function useVibeCuration() {
 
         return { success: true, tracks, interpretation };
       } catch (error) {
+        console.error("[processVibe] Error:", error);
         const errorMessage =
           error instanceof Error ? error.message : "Something went wrong";
 

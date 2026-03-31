@@ -38,6 +38,7 @@ export async function withErrorHandling<T>(
     resetBackoff();
     return result;
   } catch (error: unknown) {
+    console.error("[withErrorHandling] Caught error:", error);
     // Handle 401 - token expired
     if (isSpotifyError(error, 401)) {
       if (retryCount < 1) {
