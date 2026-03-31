@@ -35,7 +35,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can transfer playback between devices without errors
   4. Expired tokens refresh automatically without requiring re-authentication
   5. Token refresh race conditions handled gracefully (no 401 cascades)
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [x] 01-01-project-scaffold-PLAN.md — Project setup with Next.js 16, Tailwind v4, Zustand
+- [x] 01-02-spotify-oauth-PLAN.md — PKCE OAuth flow with singleton token manager
+- [x] 01-03-device-selection-PLAN.md — Device picker with error recovery
 
 ### Phase 2: Playback Core
 **Goal**: Users see current playback state and control music like a standard player
@@ -47,7 +51,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User sees next 5-10 tracks in upcoming queue
   4. User sees scrollable history of played tracks in current session
   5. Interface is touch-friendly on mobile (primary use case: phone on coffee table)
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 02-01-playback-state-PLAN.md — Playback API, polling hook, queue/history stores
+- [ ] 02-02-now-playing-ui-PLAN.md — Album art hero, track info, progress bar
+- [ ] 02-03-controls-queue-history-PLAN.md — Playback controls, volume, queue/history lists
 **UI hint**: yes
 
 ### Phase 3: Chat Interface
@@ -152,12 +160,12 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Spotify Foundation | 0/TBD | Complete    | 2026-03-30 |
-| 2. Playback Core | 0/TBD | Not started | - |
+| 1. Spotify Foundation | 3/3 | Complete    | 2026-03-30 |
+| 2. Playback Core | 0/3 | Planned | - |
 | 3. Chat Interface | 0/TBD | Not started | - |
 | 4. AI Curation | 0/TBD | Not started | - |
 | 5. Refinement Loop | 0/TBD | Not started | - |
