@@ -1,7 +1,7 @@
 // Taste profile database operations
 // Manages persistent exclusions and preferences across sessions
 
-import { db, excludedGenres, excludedArtists, likedArtists, genrePreferences } from "./index";
+import { getDb, excludedGenres, excludedArtists, likedArtists, genrePreferences } from "./index";
 import { eq } from "drizzle-orm";
 
 // Get all permanent exclusions
@@ -9,6 +9,11 @@ export async function getPermanentExclusions(): Promise<{
   genres: string[];
   artists: { id: string; name: string }[];
 }> {
+  const db = getDb();
+  if (!db) {
+    return { genres: [], artists: [] };
+  }
+
   const genres = await db.select().from(excludedGenres);
   const artists = await db.select().from(excludedArtists);
 
@@ -20,6 +25,9 @@ export async function getPermanentExclusions(): Promise<{
 
 // Add a permanent genre exclusion
 export async function addPermanentGenreExclusion(genre: string): Promise<void> {
+  const db = getDb();
+  if (!db) return;
+
   await db
     .insert(excludedGenres)
     .values({ genre: genre.toLowerCase() })
@@ -28,6 +36,9 @@ export async function addPermanentGenreExclusion(genre: string): Promise<void> {
 
 // Remove a permanent genre exclusion
 export async function removePermanentGenreExclusion(genre: string): Promise<void> {
+  const db = getDb();
+  if (!db) return;
+
   await db
     .delete(excludedGenres)
     .where(eq(excludedGenres.genre, genre.toLowerCase()));
@@ -38,6 +49,9 @@ export async function addPermanentArtistExclusion(
   artistId: string,
   artistName: string
 ): Promise<void> {
+  const db = getDb();
+  if (!db) return;
+
   await db
     .insert(excludedArtists)
     .values({ artistId, artistName })
@@ -46,6 +60,9 @@ export async function addPermanentArtistExclusion(
 
 // Remove a permanent artist exclusion
 export async function removePermanentArtistExclusion(artistId: string): Promise<void> {
+  const db = getDb();
+  if (!db) return;
+
   await db
     .delete(excludedArtists)
     .where(eq(excludedArtists.artistId, artistId));
@@ -53,6 +70,9 @@ export async function removePermanentArtistExclusion(artistId: string): Promise<
 
 // Get liked artists for seeding
 export async function getLikedArtists(): Promise<{ id: string; name: string; weight: number }[]> {
+  const db = getDb();
+  if (!db) return [];
+
   const artists = await db.select().from(likedArtists);
   return artists.map((a) => ({
     id: a.artistId,
@@ -67,6 +87,9 @@ export async function addLikedArtist(
   artistName: string,
   weight: number = 1.0
 ): Promise<void> {
+  const db = getDb();
+  if (!db) return;
+
   await db
     .insert(likedArtists)
     .values({ artistId, artistName, weight })
@@ -78,11 +101,17 @@ export async function addLikedArtist(
 
 // Remove a liked artist
 export async function removeLikedArtist(artistId: string): Promise<void> {
+  const db = getDb();
+  if (!db) return;
+
   await db.delete(likedArtists).where(eq(likedArtists.artistId, artistId));
 }
 
 // Get genre preferences
 export async function getGenrePreferences(): Promise<{ genre: string; weight: number }[]> {
+  const db = getDb();
+  if (!db) return [];
+
   const prefs = await db.select().from(genrePreferences);
   return prefs.map((p) => ({ genre: p.genre, weight: p.weight }));
 }
@@ -92,6 +121,9 @@ export async function updateGenrePreference(
   genre: string,
   weight: number
 ): Promise<void> {
+  const db = getDb();
+  if (!db) return;
+
   await db
     .insert(genrePreferences)
     .values({ genre: genre.toLowerCase(), weight })
@@ -103,6 +135,9 @@ export async function updateGenrePreference(
 
 // Clear all taste profile data
 export async function clearTasteProfile(): Promise<void> {
+  const db = getDb();
+  if (!db) return;
+
   await db.delete(excludedGenres);
   await db.delete(excludedArtists);
   await db.delete(likedArtists);
