@@ -24,7 +24,7 @@ export function usePlaybackPolling() {
     setPollingInterval,
   } = usePlaybackStore();
 
-  const { addToHistory } = useQueueStore();
+  const { addToHistory, advanceQueue } = useQueueStore();
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const backoffRef = useRef(PAUSED_POLL_INTERVAL);
@@ -39,9 +39,8 @@ export function usePlaybackPolling() {
       const state = await getPlaybackState();
       updatePlaybackState(state);
 
-      // Track changed - add previous to history
+      // Track changed - add previous to history and advance queue
       if (state?.track && state.track.id !== lastTrackIdRef.current) {
-        // Add the previous track to history (if it existed)
         if (lastTrackIdRef.current && currentTrack) {
           addToHistory({
             id: currentTrack.id,
@@ -53,6 +52,8 @@ export function usePlaybackPolling() {
           });
         }
         lastTrackIdRef.current = state.track.id;
+        // Remove the now-playing track from the upcoming queue
+        advanceQueue(state.track.id);
       }
 
       // Reset backoff on successful poll while playing
@@ -65,7 +66,7 @@ export function usePlaybackPolling() {
     } finally {
       isPollingRef.current = false;
     }
-  }, [updatePlaybackState, addToHistory, currentTrack]);
+  }, [updatePlaybackState, addToHistory, advanceQueue, currentTrack]);
 
   useEffect(() => {
     if (!isAuthenticated) {

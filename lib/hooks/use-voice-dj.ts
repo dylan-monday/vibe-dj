@@ -1,34 +1,31 @@
-// Voice DJ hook - manages DJ commentary playback
-// Speaks track intros when tracks change
+// Voice DJ hook - on-demand DJ commentary
+// Click to hear info about the current track
 
 import { useCallback, useRef, useState, useEffect } from "react";
 import { usePlaybackStore } from "@/lib/stores/playback-store";
 
 interface VoiceDJState {
-  isEnabled: boolean;
   isSpeaking: boolean;
-  lastSpokenTrackId: string | null;
+  isLoading: boolean;
 }
 
 export function useVoiceDJ() {
   const [state, setState] = useState<VoiceDJState>({
-    isEnabled: false,
     isSpeaking: false,
-    lastSpokenTrackId: null,
+    isLoading: false,
   });
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { currentTrack } = usePlaybackStore();
 
-  // Initialize audio element
   useEffect(() => {
     if (typeof window !== "undefined" && !audioRef.current) {
       audioRef.current = new Audio();
       audioRef.current.addEventListener("ended", () => {
-        setState((s) => ({ ...s, isSpeaking: false }));
+        setState({ isSpeaking: false, isLoading: false });
       });
       audioRef.current.addEventListener("error", () => {
-        setState((s) => ({ ...s, isSpeaking: false }));
+        setState({ isSpeaking: false, isLoading: false });
       });
     }
 
@@ -40,34 +37,34 @@ export function useVoiceDJ() {
     };
   }, []);
 
-  // Speak when track changes
-  useEffect(() => {
-    if (!state.isEnabled || !currentTrack) return;
-    if (currentTrack.id === state.lastSpokenTrackId) return;
+  const speak = useCallback(async () => {
+    if (!audioRef.current || !currentTrack) return;
 
-    speakTrackIntro(currentTrack);
-  }, [currentTrack?.id, state.isEnabled]);
+    // If already speaking, stop
+    if (state.isSpeaking) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setState({ isSpeaking: false, isLoading: false });
+      return;
+    }
 
-  const speakTrackIntro = useCallback(async (track: NonNullable<typeof currentTrack>) => {
-    if (!audioRef.current) return;
-
-    setState((s) => ({ ...s, isSpeaking: true, lastSpokenTrackId: track.id }));
+    setState({ isSpeaking: false, isLoading: true });
 
     try {
       const response = await fetch("/api/voice", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          trackName: track.name,
-          artistName: track.artists[0]?.name || "Unknown Artist",
-          albumName: track.album.name,
-          isFirst: !state.lastSpokenTrackId,
+          trackName: currentTrack.name,
+          artistName: currentTrack.artists[0]?.name || "Unknown Artist",
+          albumName: currentTrack.album.name,
+          isFirst: false,
         }),
       });
 
       if (!response.ok) {
         console.warn("Voice synthesis unavailable");
-        setState((s) => ({ ...s, isSpeaking: false }));
+        setState({ isSpeaking: false, isLoading: false });
         return;
       }
 
@@ -77,34 +74,31 @@ export function useVoiceDJ() {
       audioRef.current.src = audioUrl;
       audioRef.current.volume = 0.8;
       await audioRef.current.play();
+      setState({ isSpeaking: true, isLoading: false });
 
-      // Clean up blob URL after playing
       audioRef.current.addEventListener("ended", () => {
         URL.revokeObjectURL(audioUrl);
       }, { once: true });
 
     } catch (error) {
       console.error("Voice playback failed:", error);
-      setState((s) => ({ ...s, isSpeaking: false }));
+      setState({ isSpeaking: false, isLoading: false });
     }
-  }, [state.lastSpokenTrackId]);
-
-  const toggleEnabled = useCallback(() => {
-    setState((s) => ({ ...s, isEnabled: !s.isEnabled }));
-  }, []);
+  }, [currentTrack, state.isSpeaking]);
 
   const stop = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
-    setState((s) => ({ ...s, isSpeaking: false }));
+    setState({ isSpeaking: false, isLoading: false });
   }, []);
 
   return {
-    isEnabled: state.isEnabled,
     isSpeaking: state.isSpeaking,
-    toggleEnabled,
+    isLoading: state.isLoading,
+    hasTrack: !!currentTrack,
+    speak,
     stop,
   };
 }

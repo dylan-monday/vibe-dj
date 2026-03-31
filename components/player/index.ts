@@ -1,11 +1,13 @@
 export { DevicePicker } from "./device-picker";
 export { NowPlaying } from "./now-playing";
 export { NowPlayingBar } from "./now-playing-bar";
+export { NowPlayingHero } from "./now-playing-hero";
 export { AlbumArt } from "./album-art";
 export { ProgressBar } from "./progress-bar";
 export { PlaybackControls } from "./playback-controls";
 export { VolumeSlider } from "./volume-slider";
 export { QueueList } from "./queue-list";
+export { QueueDrawer } from "./queue-drawer";
 export { HistoryList } from "./history-list";
 export { TrackItem } from "./track-item";
 export { TrackActions } from "./track-actions";

@@ -15,6 +15,7 @@ interface QueueStore {
 
   // Actions
   setUpcoming: (tracks: QueueTrack[]) => void;
+  advanceQueue: (nowPlayingId: string) => void;
   addToHistory: (track: QueueTrack) => void;
   clearHistory: () => void;
   clearQueue: () => void;
@@ -31,6 +32,16 @@ export const useQueueStore = create<QueueStore>()(
       // Set upcoming tracks (replaces entire queue)
       setUpcoming: (tracks: QueueTrack[]) => {
         set({ upcomingTracks: tracks });
+      },
+
+      // Remove the now-playing track from upcoming (advance the queue)
+      advanceQueue: (nowPlayingId: string) => {
+        const { upcomingTracks } = get();
+        const idx = upcomingTracks.findIndex((t) => t.id === nowPlayingId);
+        if (idx !== -1) {
+          // Remove everything up to and including the now-playing track
+          set({ upcomingTracks: upcomingTracks.slice(idx + 1) });
+        }
       },
 
       // Add track to history

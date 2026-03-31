@@ -151,7 +151,7 @@ export async function seekToPosition(positionMs: number): Promise<void> {
 }
 
 // Play specific tracks (adds to queue and starts playback)
-export async function playTracks(trackIds: string[]): Promise<void> {
+export async function playTracks(trackIds: string[], deviceId?: string): Promise<void> {
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {
@@ -165,30 +165,27 @@ export async function playTracks(trackIds: string[]): Promise<void> {
   // Convert IDs to URIs
   const uris = trackIds.map((id) => `spotify:track:${id}`);
 
-  console.log("[playTracks] Attempting to play", uris.length, "tracks...");
+  const targetDevice = deviceId ?? "";
 
   return withErrorHandling(async () => {
-    // Start playback with track URIs - let Spotify pick the active device
-    // Pass empty string for device_id to use currently active device
-    console.log("[playTracks] Calling startResumePlayback...");
-    await client.player.startResumePlayback("", undefined, uris);
-    console.log("[playTracks] Success!");
+    await client.player.startResumePlayback(targetDevice, undefined, uris);
   });
 }
 
 // Add tracks to queue (after currently playing track)
-export async function addToQueue(trackIds: string[]): Promise<void> {
+export async function addToQueue(trackIds: string[], deviceId?: string): Promise<void> {
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {
     throw new SpotifyApiError("Not authenticated", 401);
   }
 
+  const targetDevice = deviceId ?? "";
+
   return withErrorHandling(async () => {
-    // Add each track to queue sequentially
     for (const trackId of trackIds) {
       const uri = `spotify:track:${trackId}`;
-      await client.player.addItemToPlaybackQueue(uri);
+      await client.player.addItemToPlaybackQueue(uri, targetDevice);
     }
   });
 }

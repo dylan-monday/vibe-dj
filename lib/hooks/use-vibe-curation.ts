@@ -62,6 +62,10 @@ export function useVibeCuration() {
     useSessionStore();
   const { setUpcoming } = useQueueStore();
 
+  // Helper to get active device ID (avoids circular deps)
+  const getDeviceId = (): string | undefined =>
+    usePlaybackStore.getState().activeDevice?.id ?? undefined;
+
   const processVibe = useCallback(
     async (userMessage: string): Promise<CurationResult> => {
       setState({
@@ -73,8 +77,6 @@ export function useVibeCuration() {
       setLoading(true);
 
       try {
-        // Step 1: Interpret the vibe via API
-        console.log("[processVibe] Starting interpretation...");
         setState((s) => ({ ...s, currentStep: "interpreting" }));
 
         const context = getSessionContext();
@@ -152,7 +154,7 @@ export function useVibeCuration() {
           // Play search results
           setState((s) => ({ ...s, currentStep: "playing" }));
           const trackIds = searchResults.map((t) => t.id);
-          await playTracks(trackIds);
+          await playTracks(trackIds, getDeviceId());
           addPlayedTracks(trackIds);
 
           // Update queue UI (skip first track since it's now playing)
@@ -182,8 +184,6 @@ export function useVibeCuration() {
           );
         }
 
-        // Step 2: Get recommendations
-        console.log("[processVibe] Getting recommendations for:", interpretation.genres);
         setState((s) => ({ ...s, currentStep: "recommending" }));
 
         const { tracks: recommendedTracks } = await getRecommendations(
@@ -225,13 +225,10 @@ export function useVibeCuration() {
           usedFallback = true;
         }
 
-        // Step 3: Play the tracks
-        console.log("[processVibe] Got", tracks.length, "tracks, starting playback...");
         setState((s) => ({ ...s, currentStep: "playing" }));
 
         const trackIds = tracks.map((t) => t.id);
-        console.log("[processVibe] Playing track IDs:", trackIds.slice(0, 3), "...");
-        await playTracks(trackIds);
+        await playTracks(trackIds, getDeviceId());
 
         // Update session with played tracks
         addPlayedTracks(trackIds);
@@ -377,7 +374,7 @@ export function useVibeCuration() {
         // Add to queue (not replace - refinement adds to existing)
         setState((s) => ({ ...s, currentStep: "playing" }));
         const trackIds = tracks.map((t) => t.id);
-        await addToQueue(trackIds);
+        await addToQueue(trackIds, getDeviceId());
         addPlayedTracks(trackIds);
 
         // Append to queue UI
