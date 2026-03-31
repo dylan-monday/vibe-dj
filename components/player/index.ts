@@ -1,5 +1,6 @@
 export { DevicePicker } from "./device-picker";
 export { NowPlaying } from "./now-playing";
+export { NowPlayingBar } from "./now-playing-bar";
 export { AlbumArt } from "./album-art";
 export { ProgressBar } from "./progress-bar";
 export { PlaybackControls } from "./playback-controls";
