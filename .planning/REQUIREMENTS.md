@@ -444,10 +444,10 @@ These are explicitly NOT included in v1:
 | AUTH-02 | Phase 1 | Complete |
 | UI-03 | Phase 1 | Complete |
 | PLAY-01 | Phase 2 | Pending |
-| PLAY-02 | Phase 2 | Pending |
-| PLAY-03 | Phase 2 | Pending |
-| PLAY-05 | Phase 2 | Pending |
-| UI-01 | Phase 2 | Pending |
+| PLAY-02 | Phase 2 | Complete |
+| PLAY-03 | Phase 2 | Complete |
+| PLAY-05 | Phase 2 | Complete |
+| UI-01 | Phase 2 | Complete |
 | CURA-01 | Phase 3 | Pending |
 | CURA-02 | Phase 4 | Pending |
 | CURA-03 | Phase 4 | Pending |

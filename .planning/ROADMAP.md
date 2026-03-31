@@ -54,8 +54,8 @@ Plans:
 **Plans**: 3 plans
 Plans:
 - [x] 02-01-playback-state-PLAN.md — Playback API, polling hook, queue/history stores
-- [ ] 02-02-now-playing-ui-PLAN.md — Album art hero, track info, progress bar
-- [ ] 02-03-controls-queue-history-PLAN.md — Playback controls, volume, queue/history lists
+- [x] 02-02-now-playing-ui-PLAN.md — Album art hero, track info, progress bar
+- [x] 02-03-controls-queue-history-PLAN.md — Playback controls, volume, queue/history lists
 **UI hint**: yes
 
 ### Phase 3: Chat Interface
