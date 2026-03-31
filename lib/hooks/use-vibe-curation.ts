@@ -4,6 +4,7 @@
 import { useCallback, useState } from "react";
 import { useChatStore } from "@/lib/stores/chat-store";
 import { useSessionStore } from "@/lib/stores/session-store";
+import { usePlaybackStore } from "@/lib/stores/playback-store";
 import {
   getRecommendations,
   playTracks,
@@ -380,9 +381,28 @@ export function useVibeCuration() {
     ]
   );
 
+  const processFeedback = useCallback(
+    async (feedbackType: "more" | "less"): Promise<CurationResult> => {
+      const { currentTrack } = usePlaybackStore.getState();
+
+      if (!currentTrack) {
+        return { success: false, error: "No track playing" };
+      }
+
+      const message =
+        feedbackType === "more"
+          ? "more like this"
+          : `no more ${currentTrack.artists[0]?.name || "this artist"}`;
+
+      return processRefinement(message);
+    },
+    [processRefinement]
+  );
+
   return {
     processVibe,
     processRefinement,
+    processFeedback,
     ...state,
   };
 }

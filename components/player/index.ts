@@ -7,3 +7,4 @@ export { VolumeSlider } from "./volume-slider";
 export { QueueList } from "./queue-list";
 export { HistoryList } from "./history-list";
 export { TrackItem } from "./track-item";
+export { TrackActions } from "./track-actions";

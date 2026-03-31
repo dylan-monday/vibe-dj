@@ -6,3 +6,4 @@ export * from "./devices";
 export * from "./playback";
 export * from "./search";
 export * from "./recommendations";
+export * from "./library";
