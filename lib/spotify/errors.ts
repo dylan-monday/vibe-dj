@@ -105,12 +105,26 @@ export async function withErrorHandling<T>(
 }
 
 function isSpotifyError(error: unknown, statusCode: number): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "status" in error &&
-    (error as { status: number }).status === statusCode
-  );
+  if (typeof error !== "object" || error === null) {
+    return false;
+  }
+
+  // Check for status property (common SDK format)
+  if ("status" in error && (error as { status: number }).status === statusCode) {
+    return true;
+  }
+
+  // Check for statusCode property
+  if ("statusCode" in error && (error as { statusCode: number }).statusCode === statusCode) {
+    return true;
+  }
+
+  // Check error message for status code (SDK format: "Unrecognised response code: 404")
+  if (error instanceof Error && error.message.includes(`response code: ${statusCode}`)) {
+    return true;
+  }
+
+  return false;
 }
 
 function getRetryAfter(error: unknown): number | undefined {

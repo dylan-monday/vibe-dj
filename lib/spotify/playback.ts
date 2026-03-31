@@ -77,7 +77,7 @@ export async function play(deviceId?: string): Promise<void> {
   }
 
   return withErrorHandling(async () => {
-    // Pass deviceId or undefined to use currently active device
+    // Pass deviceId or empty string to use currently active device
     await client.player.startResumePlayback(deviceId ?? "");
   });
 }
@@ -166,7 +166,7 @@ export async function playTracks(trackIds: string[]): Promise<void> {
   const uris = trackIds.map((id) => `spotify:track:${id}`);
 
   return withErrorHandling(async () => {
-    // Start playback with the track URIs
+    // Start playback with the track URIs on the active device
     await client.player.startResumePlayback("", undefined, uris);
   });
 }
