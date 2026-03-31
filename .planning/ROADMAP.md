@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Spotify Foundation** - OAuth authentication, device selection, token management (completed 2026-03-30)
 - [x] **Phase 2: Playback Core** - Now playing display, basic controls, queue visibility (completed 2026-03-31)
 - [x] **Phase 3: Chat Interface** - Conversational UI, message threading, input handling (completed 2026-03-31)
-- [ ] **Phase 4: AI Curation** - Vibe interpretation (Claude), recommendation engine (Spotify), session memory
+- [x] **Phase 4: AI Curation** - Vibe interpretation (Claude), recommendation engine (Spotify), session memory (completed 2026-03-31)
 - [ ] **Phase 5: Refinement Loop** - Real-time feedback, queue adjustments, search fallback
 - [ ] **Phase 6: Queue Management** - Track actions (like/save), queue manipulation, history scrolling
 - [ ] **Phase 7: Session Persistence** - State persistence, auto-save playlists, session recovery
@@ -86,10 +86,10 @@ Plans:
   5. Session memory prevents track repeats and remembers excluded genres
 **Plans**: 4 plans
 Plans:
-- [ ] 04-01-vibe-interpreter-PLAN.md — Claude API integration for parsing vibes to structured params
-- [ ] 04-02-spotify-recommendations-PLAN.md — Spotify Recommendations with seed rotation and diversity
-- [ ] 04-03-session-memory-PLAN.md — Session store for played tracks and exclusions
-- [ ] 04-04-curation-integration-PLAN.md — Curation hook orchestrating interpretation → playback
+- [x] 04-01-vibe-interpreter-PLAN.md — Claude API integration for parsing vibes to structured params
+- [x] 04-02-spotify-recommendations-PLAN.md — Spotify Recommendations with seed rotation and diversity
+- [x] 04-03-session-memory-PLAN.md — Session store for played tracks and exclusions
+- [x] 04-04-curation-integration-PLAN.md — Curation hook orchestrating interpretation → playback
 
 ### Phase 5: Refinement Loop
 **Goal**: Users adjust the vibe in real-time with natural feedback
@@ -175,7 +175,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 1. Spotify Foundation | 3/3 | Complete    | 2026-03-30 |
 | 2. Playback Core | 3/3 | Complete    | 2026-03-31 |
 | 3. Chat Interface | 2/2 | Complete    | 2026-03-31 |
-| 4. AI Curation | 0/4 | Planned | - |
+| 4. AI Curation | 4/4 | Complete    | 2026-03-31 |
 | 5. Refinement Loop | 0/TBD | Not started | - |
 | 6. Queue Management | 0/TBD | Not started | - |
 | 7. Session Persistence | 0/TBD | Not started | - |
