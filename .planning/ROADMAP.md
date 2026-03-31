@@ -101,7 +101,11 @@ Plans:
   3. User says "no more X" and genre/artist excluded for rest of session
   4. Quick action buttons provide one-tap feedback for common adjustments
   5. Search fallback works when natural language interpretation fails
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 05-01-refinement-interpreter-PLAN.md — Detect refinement commands vs new vibes, apply adjustments
+- [ ] 05-02-quick-actions-PLAN.md — Quick action buttons for common refinements
+- [ ] 05-03-search-fallback-PLAN.md — Fallback to search when recommendations fail
 
 ### Phase 6: Queue Management
 **Goal**: Users interact with individual tracks and control queue order
