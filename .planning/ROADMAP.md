@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Playback Core** - Now playing display, basic controls, queue visibility (completed 2026-03-31)
 - [x] **Phase 3: Chat Interface** - Conversational UI, message threading, input handling (completed 2026-03-31)
 - [x] **Phase 4: AI Curation** - Vibe interpretation (Claude), recommendation engine (Spotify), session memory (completed 2026-03-31)
-- [ ] **Phase 5: Refinement Loop** - Real-time feedback, queue adjustments, search fallback
+- [x] **Phase 5: Refinement Loop** - Real-time feedback, queue adjustments, search fallback (completed 2026-03-31)
 - [ ] **Phase 6: Queue Management** - Track actions (like/save), queue manipulation, history scrolling
 - [ ] **Phase 7: Session Persistence** - State persistence, auto-save playlists, session recovery
 - [ ] **Phase 8: Taste Profile** - Cross-session memory, anti-drift logic, preference learning
@@ -103,9 +103,9 @@ Plans:
   5. Search fallback works when natural language interpretation fails
 **Plans**: 3 plans
 Plans:
-- [ ] 05-01-refinement-interpreter-PLAN.md — Detect refinement commands vs new vibes, apply adjustments
-- [ ] 05-02-quick-actions-PLAN.md — Quick action buttons for common refinements
-- [ ] 05-03-search-fallback-PLAN.md — Fallback to search when recommendations fail
+- [x] 05-01-refinement-interpreter-PLAN.md — Detect refinement commands vs new vibes, apply adjustments
+- [x] 05-02-quick-actions-PLAN.md — Quick action buttons for common refinements
+- [x] 05-03-search-fallback-PLAN.md — Fallback to search when recommendations fail
 
 ### Phase 6: Queue Management
 **Goal**: Users interact with individual tracks and control queue order
@@ -180,7 +180,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 2. Playback Core | 3/3 | Complete    | 2026-03-31 |
 | 3. Chat Interface | 2/2 | Complete    | 2026-03-31 |
 | 4. AI Curation | 4/4 | Complete    | 2026-03-31 |
-| 5. Refinement Loop | 0/TBD | Not started | - |
+| 5. Refinement Loop | 3/3 | Complete    | 2026-03-31 |
 | 6. Queue Management | 0/TBD | Not started | - |
 | 7. Session Persistence | 0/TBD | Not started | - |
 | 8. Taste Profile | 0/TBD | Not started | - |
