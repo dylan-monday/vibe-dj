@@ -30,8 +30,11 @@ function getClientId(): string {
   return clientId;
 }
 
-// Get redirect URI from environment
+// Get redirect URI - use current origin in browser
 function getRedirectUri(): string {
+  if (typeof window !== "undefined") {
+    return `${window.location.origin}/api/auth/callback/spotify`;
+  }
   return process.env.SPOTIFY_REDIRECT_URI ||
     `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/callback/spotify`;
 }
