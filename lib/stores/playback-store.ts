@@ -8,6 +8,14 @@ import {
   transferPlayback,
   SpotifyApiError,
 } from "@/lib/spotify/devices";
+import {
+  play as apiPlay,
+  pause as apiPause,
+  skipNext as apiSkipNext,
+  skipPrevious as apiSkipPrevious,
+  setVolume as apiSetVolume,
+  seekToPosition as apiSeekToPosition,
+} from "@/lib/spotify/playback";
 
 interface PlaybackStore {
   // Device state
@@ -16,25 +24,73 @@ interface PlaybackStore {
   isLoadingDevices: boolean;
   deviceError: string | null;
 
-  // Playback state (to be expanded in Phase 2)
+  // Playback state
   playbackState: PlaybackState | null;
+  currentTrack: PlaybackState['track'] | null;
+  isPlaying: boolean;
+  progressMs: number;
+  durationMs: number;
+  volume: number;
+  lastPolledAt: number | null;
+  isStale: boolean;
+
+  // Polling control
+  pollingInterval: number;
   isPolling: boolean;
 
-  // Actions
+  // Error state
+  playbackError: string | null;
+
+  // Actions - Device management
   fetchDevices: () => Promise<void>;
   selectDevice: (deviceId: string) => Promise<void>;
   clearDeviceError: () => void;
+
+  // Actions - State updates (called by polling hook)
+  updatePlaybackState: (state: PlaybackState | null) => void;
   setPlaybackState: (state: PlaybackState | null) => void;
+  setProgress: (ms: number) => void;
+  markStale: () => void;
+
+  // Actions - Playback controls (call API + optimistic update)
+  togglePlayPause: () => Promise<void>;
+  skipToNext: () => Promise<void>;
+  skipToPrevious: () => Promise<void>;
+  changeVolume: (percent: number) => Promise<void>;
+  seekTo: (positionMs: number) => Promise<void>;
+
+  // Actions - Polling control
+  startPolling: () => void;
+  stopPolling: () => void;
+  setPollingInterval: (ms: number) => void;
 }
 
+// Debounce helper for volume changes
+let volumeDebounceTimer: NodeJS.Timeout | null = null;
+
 export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
-  // Initial state
+  // Initial state - Device management
   devices: [],
   activeDevice: null,
   isLoadingDevices: false,
   deviceError: null,
+
+  // Playback state
   playbackState: null,
+  currentTrack: null,
+  isPlaying: false,
+  progressMs: 0,
+  durationMs: 0,
+  volume: 0,
+  lastPolledAt: null,
+  isStale: false,
+
+  // Polling control
+  pollingInterval: 3000,
   isPolling: false,
+
+  // Error state
+  playbackError: null,
 
   // Fetch available devices
   fetchDevices: async () => {
@@ -100,5 +156,153 @@ export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
   },
 
   clearDeviceError: () => set({ deviceError: null }),
-  setPlaybackState: (state) => set({ playbackState: state }),
+
+  // State updates (called by polling hook)
+  updatePlaybackState: (state) => {
+    const now = Date.now();
+    set({
+      playbackState: state,
+      currentTrack: state?.track || null,
+      isPlaying: state?.isPlaying || false,
+      progressMs: state?.progressMs || 0,
+      durationMs: state?.track?.durationMs || 0,
+      volume: state?.device?.volume_percent || get().volume,
+      lastPolledAt: now,
+      isStale: false,
+      playbackError: null,
+    });
+  },
+
+  setPlaybackState: (state) => {
+    const now = Date.now();
+    const lastPolled = get().lastPolledAt;
+    const isStale = lastPolled ? now - lastPolled > 10000 : false;
+
+    set({
+      playbackState: state,
+      currentTrack: state?.track || null,
+      isPlaying: state?.isPlaying || false,
+      progressMs: state?.progressMs || 0,
+      durationMs: state?.track?.durationMs || 0,
+      volume: state?.device?.volume_percent || 0,
+      lastPolledAt: now,
+      isStale,
+    });
+  },
+
+  setProgress: (ms: number) => {
+    set({ progressMs: ms });
+  },
+
+  markStale: () => {
+    set({ isStale: true });
+  },
+
+  // Playback controls with optimistic updates
+  togglePlayPause: async () => {
+    const { isPlaying } = get();
+    const newState = !isPlaying;
+
+    // Optimistic update
+    set({ isPlaying: newState, playbackError: null });
+
+    try {
+      if (newState) {
+        await apiPlay();
+      } else {
+        await apiPause();
+      }
+    } catch (error) {
+      // Revert on error
+      set({
+        isPlaying,
+        playbackError: error instanceof SpotifyApiError
+          ? error.message
+          : "Failed to toggle playback",
+      });
+    }
+  },
+
+  skipToNext: async () => {
+    set({ playbackError: null });
+
+    try {
+      await apiSkipNext();
+      // Don't optimistically update - let polling handle it
+    } catch (error) {
+      set({
+        playbackError: error instanceof SpotifyApiError
+          ? error.message
+          : "Failed to skip to next track",
+      });
+    }
+  },
+
+  skipToPrevious: async () => {
+    set({ playbackError: null });
+
+    try {
+      await apiSkipPrevious();
+      // Don't optimistically update - let polling handle it
+    } catch (error) {
+      set({
+        playbackError: error instanceof SpotifyApiError
+          ? error.message
+          : "Failed to skip to previous track",
+      });
+    }
+  },
+
+  changeVolume: async (percent: number) => {
+    // Clamp to 0-100
+    const clampedPercent = Math.max(0, Math.min(100, percent));
+
+    // Optimistic update
+    set({ volume: clampedPercent, playbackError: null });
+
+    // Debounce API call to avoid spamming Spotify
+    if (volumeDebounceTimer) {
+      clearTimeout(volumeDebounceTimer);
+    }
+
+    volumeDebounceTimer = setTimeout(async () => {
+      try {
+        await apiSetVolume(clampedPercent);
+      } catch (error) {
+        set({
+          playbackError: error instanceof SpotifyApiError
+            ? error.message
+            : "Failed to change volume",
+        });
+      }
+    }, 300); // 300ms debounce
+  },
+
+  seekTo: async (positionMs: number) => {
+    // Optimistic update
+    set({ progressMs: positionMs, playbackError: null });
+
+    try {
+      await apiSeekToPosition(positionMs);
+    } catch (error) {
+      set({
+        playbackError: error instanceof SpotifyApiError
+          ? error.message
+          : "Failed to seek",
+      });
+    }
+  },
+
+  // Polling control
+  startPolling: () => {
+    set({ isPolling: true });
+  },
+
+  stopPolling: () => {
+    set({ isPolling: false });
+  },
+
+  setPollingInterval: (ms: number) => {
+    set({ pollingInterval: ms });
+  },
 }));
