@@ -12,6 +12,7 @@ import {
   VolumeSlider,
   QueueList,
   HistoryList,
+  VoiceDJToggle,
 } from "@/components/player";
 import { ChatPanel } from "@/components/chat";
 
@@ -102,8 +103,9 @@ export default function Home() {
             {/* Controls card */}
             <section className="glass rounded-2xl p-6">
               <PlaybackControls />
-              <div className="flex justify-center mt-4">
+              <div className="flex items-center justify-center gap-6 mt-4">
                 <VolumeSlider />
+                <VoiceDJToggle />
               </div>
             </section>
 

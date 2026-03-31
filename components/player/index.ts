@@ -8,3 +8,4 @@ export { QueueList } from "./queue-list";
 export { HistoryList } from "./history-list";
 export { TrackItem } from "./track-item";
 export { TrackActions } from "./track-actions";
+export { VoiceDJToggle } from "./voice-dj-toggle";

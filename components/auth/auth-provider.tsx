@@ -40,6 +40,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (code) {
         try {
           await exchangeCodeForTokens(code);
+          // Initialize auth state after token exchange
+          await initialize();
           // Fetch user profile after successful auth
           await fetchUserProfile();
           // Clear URL params
