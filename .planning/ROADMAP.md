@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Chat Interface** - Conversational UI, message threading, input handling (completed 2026-03-31)
 - [x] **Phase 4: AI Curation** - Vibe interpretation (Claude), recommendation engine (Spotify), session memory (completed 2026-03-31)
 - [x] **Phase 5: Refinement Loop** - Real-time feedback, queue adjustments, search fallback (completed 2026-03-31)
-- [ ] **Phase 6: Queue Management** - Track actions (like/save), queue manipulation, history scrolling
+- [x] **Phase 6: Queue Management** - Track actions (like/save), feedback buttons (completed 2026-03-31)
 - [ ] **Phase 7: Session Persistence** - State persistence, auto-save playlists, session recovery
 - [ ] **Phase 8: Taste Profile** - Cross-session memory, anti-drift logic, preference learning
 - [ ] **Phase 9: Voice DJ** - ElevenLabs voice synthesis, anticipatory generation, voice controls
@@ -117,8 +117,12 @@ Plans:
   3. User can remove track from queue or clear entire queue
   4. User can reorder queue via drag-and-drop on mobile
   5. "More like this" and "Less like this" actions trigger refinement immediately
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [x] 06-01-track-actions-PLAN.md — Like/unlike tracks with Spotify library API
+- [x] 06-02-queue-feedback-PLAN.md — More/less feedback buttons with refinement
 **UI hint**: yes
+**Note**: Queue remove/reorder not possible via Spotify API (write-only). Like and feedback implemented.
 
 ### Phase 7: Session Persistence
 **Goal**: Playback state and queue survive page reloads and create session playlists
@@ -181,7 +185,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 3. Chat Interface | 2/2 | Complete    | 2026-03-31 |
 | 4. AI Curation | 4/4 | Complete    | 2026-03-31 |
 | 5. Refinement Loop | 3/3 | Complete    | 2026-03-31 |
-| 6. Queue Management | 0/TBD | Not started | - |
+| 6. Queue Management | 2/2 | Complete    | 2026-03-31 |
 | 7. Session Persistence | 0/TBD | Not started | - |
 | 8. Taste Profile | 0/TBD | Not started | - |
 | 9. Voice DJ | 0/TBD | Not started | - |

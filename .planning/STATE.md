@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: ready
-stopped_at: Completed Phase 05 Refinement Loop
-last_updated: "2026-03-31T16:00:00.000Z"
+stopped_at: Completed Phase 06 Queue Management
+last_updated: "2026-03-31T16:30:00.000Z"
 last_activity: 2026-03-31
 progress:
   total_phases: 10
-  completed_phases: 5
-  total_plans: 15
-  completed_plans: 15
-  percent: 50
+  completed_phases: 6
+  total_plans: 17
+  completed_plans: 17
+  percent: 60
 ---
 
 # Project State
@@ -21,24 +21,35 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** When a user describes a musical vibe in plain language, they hear it immediately through their Sonos speakers — and the curation is tight enough that the third track locks in the vibe with no manual skips needed.
-**Current focus:** Phase 06 — Queue Management (next)
+**Current focus:** Core features complete (Phases 1-6). Enhancement phases (7-10) available.
 
 ## Current Position
 
-Phase: 05 (Refinement Loop) — COMPLETE
-Plan: 3 of 3
+Phase: 06 (Queue Management) — COMPLETE
+Plan: 2 of 2
 Status: Complete
 Last activity: 2026-03-31
 
-Progress: [████████████████████░░░░░░░░░░░░░░░░░░░░░░] 50%
+Progress: [████████████████████████░░░░░░░░░░░░░░░░░░] 60%
+
+## Completed Phases Summary
+
+| Phase | Description | Key Features |
+|-------|-------------|--------------|
+| 01 | Spotify Foundation | OAuth PKCE, device selection, token refresh |
+| 02 | Playback Core | Now playing, controls, queue/history |
+| 03 | Chat Interface | Message threading, persistence |
+| 04 | AI Curation | Claude interpretation, Spotify recommendations |
+| 05 | Refinement Loop | Energy/valence adjustments, quick actions, search fallback |
+| 06 | Queue Management | Like tracks, feedback buttons |
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 15
+- Total plans completed: 17
 - Average duration: ~5 minutes
-- Total execution time: ~1 hour 15 minutes
+- Total execution time: ~1 hour 30 minutes
 
 **By Phase:**
 
@@ -49,6 +60,7 @@ Progress: [████████████████████░░░
 | 03 | 2 | 5m | 2.5m |
 | 04 | 4 | 15m | 3.8m |
 | 05 | 3 | 10m | 3.3m |
+| 06 | 2 | 8m | 4.0m |
 
 ## Accumulated Context
 
@@ -70,29 +82,33 @@ Recent decisions affecting current work:
 - [Phase 04]: Session memory limits: 500 tracks, 50 genres, 50 artists
 - [Phase 05]: Refinement adds to queue (not replace) to preserve momentum
 - [Phase 05]: Search fallback when recommendations empty or interpretation fails
+- [Phase 06]: Spotify queue API is write-only; reorder/remove not possible
 
-### Pending Todos
+### Environment Variables
 
-None yet.
+Required for operation:
+- `NEXT_PUBLIC_SPOTIFY_CLIENT_ID` - Spotify OAuth (browser-accessible)
+- `SPOTIFY_REDIRECT_URI` - OAuth callback URL
+- `ANTHROPIC_API_KEY` - Claude API key
 
-### Blockers/Concerns
+### Remaining Phases
 
-**Phase 1 Research Flags (from research/SUMMARY.md):**
+Enhancement phases (optional for v1.0):
 
-- Spotify Connect device selection: Sonos device name matching reliability unknown (may need manual picker UI vs. automatic selection)
-- Queue strategy decision: Playlist-based (visible in Spotify, slower) vs. URI-based (app-only, faster) — architectural choice required
-
-## Session Continuity
-
-Last session: 2026-03-31T16:00:00.000Z
-Stopped at: Completed Phase 05 Refinement Loop
-Resume file: None
+- **Phase 7: Session Persistence** - Auto-save playlists, state recovery
+- **Phase 8: Taste Profile** - Cross-session memory, SQLite
+- **Phase 9: Voice DJ** - ElevenLabs synthesis
+- **Phase 10: Visual Polish** - Animations, gestures
 
 ## Next Action
 
-Phase 06 (Queue Management) is next. This phase will add:
-- Like track (add to Spotify Liked Songs)
-- Save track to playlist
-- Remove track from queue
-- Reorder queue via drag-and-drop
-- "More like this" / "Less like this" actions
+Core v1.0 functionality is complete. User can:
+1. Authenticate with Spotify
+2. Select playback device
+3. Describe a vibe in natural language
+4. Hear matching music within 5 seconds
+5. Refine with "more energy", "calmer", "no more X"
+6. Like tracks to Spotify library
+7. Use feedback buttons for quick adjustments
+
+Proceed to Phase 7+ for enhancement features or deploy v1.0.
