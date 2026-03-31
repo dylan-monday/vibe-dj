@@ -178,8 +178,22 @@ export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
   clearDeviceError: () => set({ deviceError: null }),
 
   // State updates (called by polling hook)
+  // Also captures the active device from playback state — no separate getDevices() call needed
   updatePlaybackState: (state) => {
     const now = Date.now();
+    const currentActive = get().activeDevice;
+    const polledDevice = state?.device ?? null;
+
+    // Update active device from playback state if Spotify reports one
+    let newActiveDevice = currentActive;
+    if (polledDevice?.is_active) {
+      newActiveDevice = polledDevice;
+      saveDevice(polledDevice);
+    } else if (!currentActive && polledDevice) {
+      newActiveDevice = polledDevice;
+      saveDevice(polledDevice);
+    }
+
     set({
       playbackState: state,
       currentTrack: state?.track || null,
@@ -187,6 +201,7 @@ export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
       progressMs: state?.progressMs || 0,
       durationMs: state?.track?.durationMs || 0,
       volume: state?.device?.volume_percent || get().volume,
+      activeDevice: newActiveDevice,
       lastPolledAt: now,
       isStale: false,
       playbackError: null,
