@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: Refinement Loop** - Real-time feedback, queue adjustments, search fallback (completed 2026-03-31)
 - [x] **Phase 6: Queue Management** - Track actions (like/save), feedback buttons (completed 2026-03-31)
 - [x] **Phase 7: Session Persistence** - Playlist export, auto-naming (completed 2026-03-31)
-- [ ] **Phase 8: Taste Profile** - Cross-session memory, anti-drift logic, preference learning
+- [x] **Phase 8: Taste Profile** - SQLite database, permanent exclusions (completed 2026-03-31)
 - [ ] **Phase 9: Voice DJ** - ElevenLabs voice synthesis, anticipatory generation, voice controls
 - [ ] **Phase 10: Visual Polish** - Dynamic accent colors, spring animations, gesture controls
 
@@ -149,7 +149,9 @@ Plans:
   3. Anti-drift logic prevents "cooking hard bop" from sliding to smooth jazz or R&B
   4. User can view and edit taste profile (clear preferences, remove exclusions)
   5. Taste profile stored in SQLite and survives app redeployment
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [x] 08-01-database-setup-PLAN.md — SQLite + Drizzle setup, taste profile API
 
 ### Phase 9: Voice DJ
 **Goal**: AI voice personality introduces tracks with natural commentary
@@ -190,6 +192,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 5. Refinement Loop | 3/3 | Complete    | 2026-03-31 |
 | 6. Queue Management | 2/2 | Complete    | 2026-03-31 |
 | 7. Session Persistence | 1/1 | Complete    | 2026-03-31 |
-| 8. Taste Profile | 0/TBD | Not started | - |
+| 8. Taste Profile | 1/1 | Complete    | 2026-03-31 |
 | 9. Voice DJ | 0/TBD | Not started | - |
 | 10. Visual Polish | 0/TBD | Not started | - |
