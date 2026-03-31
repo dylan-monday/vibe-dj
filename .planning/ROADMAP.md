@@ -84,7 +84,12 @@ Plans:
   3. Exclusions ("no smooth jazz") are respected throughout session
   4. Queue includes 10-20 tracks matching vibe without filter bubble collapse (doesn't converge on 3-4 artists)
   5. Session memory prevents track repeats and remembers excluded genres
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 04-01-vibe-interpreter-PLAN.md — Claude API integration for parsing vibes to structured params
+- [ ] 04-02-spotify-recommendations-PLAN.md — Spotify Recommendations with seed rotation and diversity
+- [ ] 04-03-session-memory-PLAN.md — Session store for played tracks and exclusions
+- [ ] 04-04-curation-integration-PLAN.md — Curation hook orchestrating interpretation → playback
 
 ### Phase 5: Refinement Loop
 **Goal**: Users adjust the vibe in real-time with natural feedback
@@ -170,7 +175,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 1. Spotify Foundation | 3/3 | Complete    | 2026-03-30 |
 | 2. Playback Core | 3/3 | Complete    | 2026-03-31 |
 | 3. Chat Interface | 2/2 | Complete    | 2026-03-31 |
-| 4. AI Curation | 0/TBD | Not started | - |
+| 4. AI Curation | 0/4 | Planned | - |
 | 5. Refinement Loop | 0/TBD | Not started | - |
 | 6. Queue Management | 0/TBD | Not started | - |
 | 7. Session Persistence | 0/TBD | Not started | - |
