@@ -1,1 +1,9 @@
 export { DevicePicker } from "./device-picker";
+export { NowPlaying } from "./now-playing";
+export { AlbumArt } from "./album-art";
+export { ProgressBar } from "./progress-bar";
+export { PlaybackControls } from "./playback-controls";
+export { VolumeSlider } from "./volume-slider";
+export { QueueList } from "./queue-list";
+export { HistoryList } from "./history-list";
+export { TrackItem } from "./track-item";
