@@ -113,44 +113,27 @@ export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
 
   // Fetch available devices
   fetchDevices: async () => {
-    // Restore previously selected device from localStorage first
+    // If we have a saved device, use it immediately — no API call needed
     const savedDevice = loadSavedDevice();
-    if (savedDevice && !get().activeDevice) {
-      set({ activeDevice: savedDevice });
+    if (savedDevice) {
+      set({ activeDevice: savedDevice, devices: [savedDevice], isLoadingDevices: false });
+      return;
     }
 
+    // No saved device — need to ask Spotify
     set({ isLoadingDevices: true, deviceError: null });
 
     try {
-      // 8s timeout — prevents hanging on rate-limited retries
       const timeout = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new SpotifyApiError("Request timed out — check Spotify is open", 408)), 8000)
+        setTimeout(() => reject(new SpotifyApiError("Request timed out — open Spotify on a device first", 408)), 8000)
       );
       const devices = await Promise.race([getDevices(), timeout]);
-
-      const spotifyActive = devices.find((d) => d.is_active) || null;
-      const restoredDevice = savedDevice
-        ? devices.find((d) => d.id === savedDevice.id) || null
-        : null;
-      const active = spotifyActive || restoredDevice || null;
-
+      const active = devices.find((d) => d.is_active) || null;
       if (active) saveDevice(active);
-
-      set({
-        devices,
-        activeDevice: active,
-        isLoadingDevices: false,
-      });
+      set({ devices, activeDevice: active, isLoadingDevices: false });
     } catch (error) {
-      const message =
-        error instanceof SpotifyApiError
-          ? error.message
-          : "Failed to fetch devices";
-
-      set({
-        isLoadingDevices: false,
-        deviceError: message,
-      });
+      const message = error instanceof SpotifyApiError ? error.message : "Failed to fetch devices";
+      set({ isLoadingDevices: false, deviceError: message });
     }
   },
 

@@ -23,16 +23,6 @@ export function DevicePicker() {
     fetchDevices();
   }, [fetchDevices]);
 
-  // Auto-retry after rate limit with backoff (10s first, then give up)
-  useEffect(() => {
-    if (deviceError?.toLowerCase().includes("rate") || deviceError?.toLowerCase().includes("exceeded")) {
-      const timer = setTimeout(() => {
-        clearDeviceError();
-        fetchDevices();
-      }, 10000);
-      return () => clearTimeout(timer);
-    }
-  }, [deviceError, clearDeviceError, fetchDevices]);
 
   // Device icon component
   const DeviceIcon = ({ type }: { type: string }) => {
