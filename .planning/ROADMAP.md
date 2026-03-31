@@ -20,8 +20,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Queue Management** - Track actions (like/save), feedback buttons (completed 2026-03-31)
 - [x] **Phase 7: Session Persistence** - Playlist export, auto-naming (completed 2026-03-31)
 - [x] **Phase 8: Taste Profile** - SQLite database, permanent exclusions (completed 2026-03-31)
-- [ ] **Phase 9: Voice DJ** - ElevenLabs voice synthesis, anticipatory generation, voice controls
-- [ ] **Phase 10: Visual Polish** - Dynamic accent colors, spring animations, gesture controls
+- [x] **Phase 9: Voice DJ** - ElevenLabs voice synthesis, anticipatory generation, voice controls (completed 2026-03-31)
+- [x] **Phase 10: Visual Polish** - Dynamic accent colors, spring animations, gesture controls (completed 2026-03-31)
 
 ## Phase Details
 
@@ -163,7 +163,9 @@ Plans:
   3. User can enable/disable voice DJ without affecting core playback
   4. Voice personality can be customized (tone, style)
   5. Voice generation failures degrade gracefully (silent playback continues)
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [x] 09-01-voice-synthesis-PLAN.md — ElevenLabs API client, commentary generator, voice store
 
 ### Phase 10: Visual Polish
 **Goal**: Interface feels animated, responsive, and visually dynamic
@@ -175,7 +177,9 @@ Plans:
   3. Swipe gestures work for common actions (swipe to skip, hold to save)
   4. Queue reordering drag-and-drop feels smooth with spring physics
   5. User can branch queue from any track in history ("more like this song")
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [x] 10-01-dynamic-colors-PLAN.md — Color extraction, theme store, motion components
 **UI hint**: yes
 
 ## Progress
@@ -193,5 +197,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 6. Queue Management | 2/2 | Complete    | 2026-03-31 |
 | 7. Session Persistence | 1/1 | Complete    | 2026-03-31 |
 | 8. Taste Profile | 1/1 | Complete    | 2026-03-31 |
-| 9. Voice DJ | 0/TBD | Not started | - |
-| 10. Visual Polish | 0/TBD | Not started | - |
+| 9. Voice DJ | 1/1 | Complete    | 2026-03-31 |
+| 10. Visual Polish | 1/1 | Complete    | 2026-03-31 |
