@@ -41,3 +41,23 @@ export interface PlaybackState {
   progressMs: number;
   device: SpotifyDevice | null;
 }
+
+// Queue track (for upcoming and history)
+export interface QueueTrack {
+  id: string;
+  name: string;
+  artists: { id: string; name: string }[];
+  album: {
+    id: string;
+    name: string;
+    images: { url: string; width: number; height: number }[];
+  };
+  durationMs: number;
+  addedAt: number; // Unix timestamp in ms
+}
+
+// Session history
+export interface SessionHistory {
+  tracks: QueueTrack[];
+  sessionId: string;
+}
