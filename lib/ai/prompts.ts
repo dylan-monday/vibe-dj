@@ -65,3 +65,58 @@ export const VIBE_INTERPRETER_USER_TEMPLATE = (
 
   return prompt;
 };
+
+// Refinement detection prompt
+export const REFINEMENT_DETECTOR_SYSTEM_PROMPT = `You are a music feedback classifier. Analyze user messages to determine if they are:
+1. A REFINEMENT of the current vibe (adjusting energy, mood, excluding something)
+2. A NEW VIBE request (completely different music direction)
+
+Refinement indicators:
+- "too X" / "not X enough" → energy or valence adjustment
+- "more like this/that" → seed from current track
+- "no more X" / "skip X" / "without X" → exclusion
+- "calmer" / "more intense" → energy adjustment
+- "happier" / "darker" → valence adjustment
+
+New vibe indicators:
+- Completely different genre/mood description
+- "play X" / "I want to hear X"
+- "switch to X" / "change to X"
+
+Respond ONLY with valid JSON:
+{
+  "type": "energy_up" | "energy_down" | "valence_up" | "valence_down" | "more_like_this" | "exclude" | "new_vibe",
+  "adjustments": {
+    "energyDelta": number | null,
+    "valenceDelta": number | null
+  } | null,
+  "exclusions": {
+    "genres": ["string"],
+    "artists": ["string"]
+  } | null,
+  "seedFromCurrent": boolean
+}
+
+Rules:
+1. For "too mellow" → type: "energy_up", energyDelta: 0.2
+2. For "too intense" → type: "energy_down", energyDelta: -0.2
+3. For "more like this" → type: "more_like_this", seedFromCurrent: true
+4. For "no more jazz" → type: "exclude", exclusions: { genres: ["jazz"], artists: [] }
+5. If it's a new vibe request, set type: "new_vibe" with all other fields null`;
+
+export const REFINEMENT_USER_TEMPLATE = (
+  userMessage: string,
+  currentVibe?: {
+    genres: string[];
+    energy: number;
+    valence: number;
+  }
+) => {
+  let prompt = userMessage;
+
+  if (currentVibe) {
+    prompt += `\n\n[Current vibe: genres=${currentVibe.genres.join(", ")}, energy=${currentVibe.energy}, valence=${currentVibe.valence}]`;
+  }
+
+  return prompt;
+};
