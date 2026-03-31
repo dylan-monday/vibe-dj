@@ -177,11 +177,19 @@ export async function playTracks(trackIds: string[]): Promise<void> {
 
   // Prefer active device, otherwise use first available
   const targetDevice = devices.find((d) => d.is_active) || devices[0];
-  const deviceId = targetDevice.id || "";
+
+  if (!targetDevice.id) {
+    throw new SpotifyApiError(
+      `Device "${targetDevice.name}" has no ID. Try a different device.`,
+      400
+    );
+  }
+
+  console.log(`[playTracks] Using device: ${targetDevice.name} (${targetDevice.id})`);
 
   return withErrorHandling(async () => {
     // Start playback with the track URIs on the target device
-    await client.player.startResumePlayback(deviceId, undefined, uris);
+    await client.player.startResumePlayback(targetDevice.id!, undefined, uris);
   });
 }
 
