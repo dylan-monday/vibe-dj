@@ -53,7 +53,7 @@ Plans:
   5. Interface is touch-friendly on mobile (primary use case: phone on coffee table)
 **Plans**: 3 plans
 Plans:
-- [ ] 02-01-playback-state-PLAN.md — Playback API, polling hook, queue/history stores
+- [x] 02-01-playback-state-PLAN.md — Playback API, polling hook, queue/history stores
 - [ ] 02-02-now-playing-ui-PLAN.md — Album art hero, track info, progress bar
 - [ ] 02-03-controls-queue-history-PLAN.md — Playback controls, volume, queue/history lists
 **UI hint**: yes

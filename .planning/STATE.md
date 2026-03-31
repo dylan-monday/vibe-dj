@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 01-03-device-selection-PLAN.md
-last_updated: "2026-03-30T23:46:45.751Z"
-last_activity: 2026-03-30
+status: executing
+stopped_at: Completed 02-01-playback-state-PLAN.md
+last_updated: "2026-03-31T13:45:00.000Z"
+last_activity: 2026-03-31 -- Completed 02-01 playback state infrastructure
 progress:
   total_phases: 10
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 33
+  total_plans: 6
+  completed_plans: 4
+  percent: 50
 ---
 
 # Project State
@@ -21,36 +21,38 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** When a user describes a musical vibe in plain language, they hear it immediately through their Sonos speakers — and the curation is tight enough that the third track locks in the vibe with no manual skips needed.
-**Current focus:** Phase 1 - Spotify Foundation
+**Current focus:** Phase 02 — playback-core
 
 ## Current Position
 
-Phase: 2
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-03-30
+Phase: 02 (playback-core) — EXECUTING
+Plan: 2 of 3
+Status: Executing Phase 02
+Last activity: 2026-03-31 -- Completed 02-01 playback state infrastructure
 
-Progress: [███░░░░░░░] 33%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 1
-- Average duration: 7.0 minutes
-- Total execution time: 0.1 hours
+- Total plans completed: 4
+- Average duration: 9.8 minutes
+- Total execution time: 0.7 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01 | 1 | 7m | 7m |
+| 01 | 3 | 14m | 4.7m |
+| 02 | 1 | 15m | 15m |
 
 **Recent Plans:**
 
 | Phase 01 P01 | 7m | 6 tasks | 11 files |
-| Phase 01 P02 | 3 | 6 tasks | 11 files |
-| Phase 01 P03 | 4 | 5 tasks | 10 files |
+| Phase 01 P02 | 3m | 6 tasks | 11 files |
+| Phase 01 P03 | 4m | 5 tasks | 10 files |
+| Phase 02 P01 | 15m | 4 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -66,6 +68,11 @@ Recent decisions affecting current work:
 - [Phase 01]: Singleton token refresh pattern prevents race conditions during concurrent refresh attempts
 - [Phase 01]: Removed supports_volume from SpotifyDevice to match SDK Device type
 - [Phase 01]: Exponential backoff for rate limits maxes at 32s with up to 3 retries
+- [Phase 02]: Extracted shared error handling to errors.ts to avoid duplication across API modules
+- [Phase 02]: Optimistic UI updates for playback controls with rollback on error
+- [Phase 02]: Volume changes debounced at 300ms to prevent API spam
+- [Phase 02]: Polling backoff starts at 10s when paused, increases 1.5x, caps at 30s
+- [Phase 02]: History limited to 100 tracks to prevent unbounded sessionStorage growth
 
 ### Pending Todos
 
@@ -81,6 +88,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T23:42:22.528Z
-Stopped at: Completed 01-03-device-selection-PLAN.md
+Last session: 2026-03-31T13:45:00.000Z
+Stopped at: Completed 02-01-playback-state-PLAN.md
 Resume file: None

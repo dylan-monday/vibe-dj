@@ -55,8 +55,8 @@ User sees current playback state with album art as hero element per spec design 
 - [ ] Track title, artist name, album name visible
 - [ ] Playback progress bar with elapsed/remaining time
 - [ ] Indicates play/pause state visually
-- [ ] Updates via 3-second polling interval
-- [ ] Handles "nothing playing" state
+- [x] Updates via 3-second polling interval
+- [x] Handles "nothing playing" state
 
 **Design:** Dark synthwave aesthetic — deep purples, magentas, cyans. Album art as frame that disappears when not interacting.
 
@@ -88,7 +88,7 @@ User sees upcoming tracks to build trust in AI curation.
 - [ ] Displays next 5-10 tracks in queue
 - [ ] Shows album art, track name, artist for each
 - [ ] Indicates current track position
-- [ ] Updates when queue changes
+- [x] Updates when queue changes (store layer ready)
 - [ ] Scrollable for longer queues
 
 **Research Notes:** Spotify queue API is write-only. App maintains its own queue state. Choice: playlist-based (visible in Spotify) or URI-based (app-only, faster).
@@ -120,9 +120,9 @@ User can see what tracks have played in the session.
 **Acceptance Criteria:**
 - [ ] Scrollable list of played tracks
 - [ ] Album art, track name, artist for each
-- [ ] Most recent at top
+- [x] Most recent at top (store implementation)
 - [ ] Click to expand track details
-- [ ] Persists across page reloads (session scope)
+- [x] Persists across page reloads (session scope)
 
 ---
 
