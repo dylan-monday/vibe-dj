@@ -17,54 +17,79 @@ export function NowPlaying() {
   // Nothing playing state
   if (!currentTrack) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 space-y-6">
-        <AlbumArt imageUrl={null} albumName="Nothing playing" size="hero" />
+      <div className="flex flex-col items-center justify-center py-16 space-y-6">
+        <div className="relative">
+          <div className="w-48 h-48 rounded-2xl bg-surface-elevated flex items-center justify-center">
+            <svg
+              className="w-16 h-16 text-foreground/20"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1}
+                d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+              />
+            </svg>
+          </div>
+        </div>
         <div className="text-center space-y-2">
-          <p className="text-xl text-foreground/70">Nothing playing</p>
-          <p className="text-sm text-foreground/50">
-            Start playing music on Spotify to see it here
+          <p className="text-xl text-foreground/60 font-display">Nothing playing</p>
+          <p className="text-sm text-foreground/40">
+            Start playing music on Spotify
           </p>
         </div>
       </div>
     );
   }
 
-  // Get best quality album image (first is usually largest)
+  // Get best quality album image
   const albumImageUrl = currentTrack.album.images[0]?.url || null;
-
-  // Format artist names
   const artistNames = currentTrack.artists.map((a) => a.name).join(", ");
 
   return (
-    <div className="flex flex-col items-center space-y-6 px-4">
-      {/* Stale indicator - subtle, non-intrusive */}
+    <div className="flex flex-col items-center space-y-6 relative">
+      {/* Stale indicator */}
       {isStale && (
-        <div className="absolute top-4 right-4 flex items-center gap-1 text-xs text-foreground/40">
-          <span className="w-2 h-2 rounded-full bg-accent-cyan animate-pulse" />
-          <span>Syncing...</span>
+        <div className="absolute top-0 right-0 flex items-center gap-1.5 text-xs text-foreground/40 bg-surface/50 px-2 py-1 rounded-full">
+          <span className="w-1.5 h-1.5 rounded-full bg-accent-cyan animate-pulse" />
+          <span>Syncing</span>
         </div>
       )}
 
-      {/* Album art hero */}
-      <AlbumArt
-        imageUrl={albumImageUrl}
-        albumName={currentTrack.album.name}
-        size="hero"
-      />
+      {/* Album art with glow effect */}
+      <div className={`relative ${isPlaying ? "pulse-active" : ""}`}>
+        <AlbumArt
+          imageUrl={albumImageUrl}
+          albumName={currentTrack.album.name}
+          size="hero"
+        />
+        {/* Ambient glow behind album art */}
+        {albumImageUrl && (
+          <div
+            className="absolute inset-0 -z-10 blur-3xl opacity-40 scale-150"
+            style={{
+              backgroundImage: `url(${albumImageUrl})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+        )}
+      </div>
 
       {/* Track info */}
-      <div className="w-full max-w-[400px] text-center space-y-1">
-        <h2 className="text-xl sm:text-2xl font-display text-foreground truncate">
+      <div className="w-full max-w-md text-center space-y-2">
+        <h2 className="text-2xl sm:text-3xl font-display text-foreground tracking-tight">
           {currentTrack.name}
         </h2>
-        <p className="text-base text-foreground/70 truncate">{artistNames}</p>
-        <p className="text-sm text-foreground/50 truncate">
-          {currentTrack.album.name}
-        </p>
+        <p className="text-base text-foreground/60">{artistNames}</p>
+        <p className="text-sm text-foreground/40">{currentTrack.album.name}</p>
       </div>
 
       {/* Progress bar */}
-      <div className="w-full max-w-[400px]">
+      <div className="w-full max-w-md">
         <ProgressBar
           progressMs={progressMs}
           durationMs={currentTrack.durationMs}

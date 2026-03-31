@@ -69,7 +69,7 @@ export async function getPlaybackState(): Promise<PlaybackState | null> {
 }
 
 // Resume playback
-export async function play(): Promise<void> {
+export async function play(deviceId?: string): Promise<void> {
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {
@@ -77,13 +77,13 @@ export async function play(): Promise<void> {
   }
 
   return withErrorHandling(async () => {
-    // Pass empty string to use currently active device
-    await client.player.startResumePlayback("");
+    // Pass deviceId or undefined to use currently active device
+    await client.player.startResumePlayback(deviceId ?? "");
   });
 }
 
 // Pause playback
-export async function pause(): Promise<void> {
+export async function pause(deviceId?: string): Promise<void> {
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {
@@ -91,13 +91,12 @@ export async function pause(): Promise<void> {
   }
 
   return withErrorHandling(async () => {
-    // Pass empty string to use currently active device
-    await client.player.pausePlayback("");
+    await client.player.pausePlayback(deviceId ?? "");
   });
 }
 
 // Skip to next track
-export async function skipNext(): Promise<void> {
+export async function skipNext(deviceId?: string): Promise<void> {
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {
@@ -105,13 +104,12 @@ export async function skipNext(): Promise<void> {
   }
 
   return withErrorHandling(async () => {
-    // Pass empty string to use currently active device
-    await client.player.skipToNext("");
+    await client.player.skipToNext(deviceId ?? "");
   });
 }
 
 // Skip to previous track
-export async function skipPrevious(): Promise<void> {
+export async function skipPrevious(deviceId?: string): Promise<void> {
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {
@@ -119,8 +117,7 @@ export async function skipPrevious(): Promise<void> {
   }
 
   return withErrorHandling(async () => {
-    // Pass empty string to use currently active device
-    await client.player.skipToPrevious("");
+    await client.player.skipToPrevious(deviceId ?? "");
   });
 }
 

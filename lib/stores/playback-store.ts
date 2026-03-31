@@ -200,20 +200,22 @@ export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
 
   // Playback controls with optimistic updates
   togglePlayPause: async () => {
-    const { isPlaying } = get();
+    const { isPlaying, activeDevice } = get();
     const newState = !isPlaying;
+    const deviceId = activeDevice?.id ?? undefined;
 
     // Optimistic update
     set({ isPlaying: newState, playbackError: null });
 
     try {
       if (newState) {
-        await apiPlay();
+        await apiPlay(deviceId);
       } else {
-        await apiPause();
+        await apiPause(deviceId);
       }
     } catch (error) {
       // Revert on error
+      console.error("Toggle play/pause failed:", error);
       set({
         isPlaying,
         playbackError: error instanceof SpotifyApiError
@@ -224,12 +226,15 @@ export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
   },
 
   skipToNext: async () => {
+    const { activeDevice } = get();
+    const deviceId = activeDevice?.id ?? undefined;
     set({ playbackError: null });
 
     try {
-      await apiSkipNext();
+      await apiSkipNext(deviceId);
       // Don't optimistically update - let polling handle it
     } catch (error) {
+      console.error("Skip next failed:", error);
       set({
         playbackError: error instanceof SpotifyApiError
           ? error.message
@@ -239,12 +244,15 @@ export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
   },
 
   skipToPrevious: async () => {
+    const { activeDevice } = get();
+    const deviceId = activeDevice?.id ?? undefined;
     set({ playbackError: null });
 
     try {
-      await apiSkipPrevious();
+      await apiSkipPrevious(deviceId);
       // Don't optimistically update - let polling handle it
     } catch (error) {
+      console.error("Skip previous failed:", error);
       set({
         playbackError: error instanceof SpotifyApiError
           ? error.message

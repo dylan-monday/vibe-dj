@@ -20,10 +20,7 @@ export function ChatPanel() {
   }, [messages.length]);
 
   const handleSubmit = async (content: string) => {
-    // Add user message
     addMessage({ role: "user", content });
-
-    // Process the vibe (interpret → recommend → play)
     await processVibe(content);
   };
 
@@ -48,7 +45,7 @@ export function ChatPanel() {
     }
   };
 
-  // Get step-specific loading message
+  // Step-specific loading message
   const getLoadingMessage = () => {
     switch (currentStep) {
       case "interpreting":
@@ -68,9 +65,9 @@ export function ChatPanel() {
       <div className="flex-1 overflow-y-auto py-4">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-8 py-12">
-            <div className="w-16 h-16 rounded-full bg-surface flex items-center justify-center mb-4">
+            <div className="w-20 h-20 rounded-2xl glass-elevated flex items-center justify-center mb-6">
               <svg
-                className="w-8 h-8 text-primary"
+                className="w-10 h-10 text-primary"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -83,10 +80,10 @@ export function ChatPanel() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-foreground mb-2">
+            <h3 className="text-xl font-display text-foreground mb-3">
               Describe your vibe
             </h3>
-            <p className="text-sm text-foreground/60 max-w-xs">
+            <p className="text-sm text-foreground/50 max-w-xs leading-relaxed">
               Try &quot;cooking hard bop, no ballads&quot; or &quot;Friday afternoon coding
               energy&quot;
             </p>
@@ -111,18 +108,18 @@ export function ChatPanel() {
 
       {/* Loading indicator */}
       {isLoading && (
-        <div className="flex items-center gap-2 px-4 py-2 text-foreground/60">
+        <div className="flex items-center gap-3 px-4 py-3 text-foreground/60">
           <div className="flex gap-1">
             <span
               className="w-2 h-2 rounded-full bg-primary animate-bounce"
               style={{ animationDelay: "0ms" }}
             />
             <span
-              className="w-2 h-2 rounded-full bg-primary animate-bounce"
+              className="w-2 h-2 rounded-full bg-accent-magenta animate-bounce"
               style={{ animationDelay: "150ms" }}
             />
             <span
-              className="w-2 h-2 rounded-full bg-primary animate-bounce"
+              className="w-2 h-2 rounded-full bg-accent-cyan animate-bounce"
               style={{ animationDelay: "300ms" }}
             />
           </div>

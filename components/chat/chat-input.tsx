@@ -30,7 +30,6 @@ export function ChatInput({
     if (value.trim() && !isLoading) {
       onSubmit(value.trim());
       setValue("");
-      // Reset height
       if (textareaRef.current) {
         textareaRef.current.style.height = "auto";
       }
@@ -38,7 +37,6 @@ export function ChatInput({
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    // Submit on Enter (without Shift)
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
@@ -48,7 +46,7 @@ export function ChatInput({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex items-end gap-2 p-4 bg-background border-t border-surface"
+      className="flex items-end gap-3 p-4 border-t border-white/5"
     >
       <textarea
         ref={textareaRef}
@@ -58,12 +56,19 @@ export function ChatInput({
         placeholder={placeholder}
         disabled={isLoading}
         rows={1}
-        className="flex-1 resize-none bg-surface rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50 min-h-[48px] max-h-[120px]"
+        className="flex-1 resize-none input-glass rounded-2xl px-4 py-3 text-sm text-foreground min-h-[48px] max-h-[120px] focus:outline-none"
       />
       <button
         type="submit"
         disabled={!value.trim() || isLoading}
-        className="flex items-center justify-center w-12 h-12 rounded-full bg-primary text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary-dark transition-colors active:scale-95"
+        className={`
+          flex items-center justify-center w-12 h-12 rounded-full
+          transition-all duration-200
+          ${!value.trim() || isLoading
+            ? "bg-surface/50 text-foreground/30 cursor-not-allowed"
+            : "btn-gradient text-white hover:scale-105 active:scale-95"
+          }
+        `}
         aria-label="Send message"
       >
         {isLoading ? (

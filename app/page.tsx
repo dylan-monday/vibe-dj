@@ -18,21 +18,20 @@ import { ChatPanel } from "@/components/chat";
 type TabId = "chat" | "queue" | "history";
 
 export default function Home() {
-  const { isAuthenticated, isLoading, user } = useAuthStore();
-  const { activeDevice, currentTrack } = usePlaybackStore();
+  const { isAuthenticated, isLoading } = useAuthStore();
+  const { activeDevice } = usePlaybackStore();
   const [activeTab, setActiveTab] = useState<TabId>("chat");
 
   // Start polling when authenticated
-  // This hook handles Page Visibility and interval management
   usePlaybackPolling();
 
   // Loading state
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-display text-primary">Vibe DJ</h1>
-          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
+      <div className="flex min-h-screen items-center justify-center bg-ambient">
+        <div className="text-center space-y-6">
+          <h1 className="text-5xl font-display gradient-text">Vibe DJ</h1>
+          <div className="w-10 h-10 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
         </div>
       </div>
     );
@@ -41,12 +40,14 @@ export default function Home() {
   // Not authenticated - show login
   if (!isAuthenticated) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center space-y-6">
-          <h1 className="text-4xl font-display text-primary">Vibe DJ</h1>
-          <p className="text-foreground/70">
-            Connect to Spotify to get started
-          </p>
+      <div className="flex min-h-screen items-center justify-center bg-ambient">
+        <div className="text-center space-y-8">
+          <div className="space-y-3">
+            <h1 className="text-6xl font-display gradient-text">Vibe DJ</h1>
+            <p className="text-foreground/60 text-lg">
+              Describe a vibe, hear it immediately
+            </p>
+          </div>
           <LoginButton />
         </div>
       </div>
@@ -55,94 +56,86 @@ export default function Home() {
 
   // Authenticated - main player view
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 bg-background/80 backdrop-blur-sm border-b border-surface/50">
-        <h1 className="text-lg font-display text-primary">Vibe DJ</h1>
-        <div className="flex items-center gap-4">
-          {activeDevice && (
-            <span className="text-xs text-foreground/50 hidden sm:inline">
-              {activeDevice.name}
-            </span>
-          )}
-          <LogoutButton />
+    <div className="flex min-h-screen flex-col bg-ambient relative">
+      {/* Floating header with glass effect */}
+      <header className="sticky top-0 z-50 mx-4 mt-4">
+        <div className="glass-elevated rounded-2xl px-5 py-3 flex items-center justify-between">
+          <h1 className="text-xl font-display gradient-text">Vibe DJ</h1>
+          <div className="flex items-center gap-4">
+            {activeDevice && (
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                <span className="text-xs text-foreground/60 hidden sm:inline">
+                  {activeDevice.name}
+                </span>
+              </div>
+            )}
+            <LogoutButton />
+          </div>
         </div>
       </header>
 
       {/* Main content */}
-      <main className="flex-1 flex flex-col">
+      <main className="flex-1 flex flex-col px-4 pb-4">
         {/* No device selected - show picker */}
         {!activeDevice && (
-          <div className="flex-1 flex items-center justify-center p-4">
+          <div className="flex-1 flex items-center justify-center py-8">
             <div className="w-full max-w-md">
-              <h2 className="text-xl text-center mb-4">Select a device</h2>
-              <DevicePicker />
+              <div className="glass-elevated rounded-3xl p-8">
+                <h2 className="text-2xl font-display text-center mb-6 text-foreground/90">
+                  Select a device
+                </h2>
+                <DevicePicker />
+              </div>
             </div>
           </div>
         )}
 
         {/* Device selected - show player */}
         {activeDevice && (
-          <>
-            {/* Now Playing section */}
-            <section className="py-6">
+          <div className="flex-1 flex flex-col gap-4 mt-4">
+            {/* Now Playing card - hero element */}
+            <section className="glass-elevated rounded-3xl p-6 relative overflow-hidden">
               <NowPlaying />
             </section>
 
-            {/* Playback Controls */}
-            <section className="py-4">
+            {/* Controls card */}
+            <section className="glass rounded-2xl p-6">
               <PlaybackControls />
+              <div className="flex justify-center mt-4">
+                <VolumeSlider />
+              </div>
             </section>
 
-            {/* Volume */}
-            <section className="flex justify-center py-2">
-              <VolumeSlider />
-            </section>
-
-            {/* Chat/Queue/History tabs */}
-            <section className="flex-1 flex flex-col border-t border-surface mt-4">
+            {/* Chat/Queue/History panel */}
+            <section className="flex-1 flex flex-col glass-elevated rounded-3xl overflow-hidden min-h-[320px]">
               {/* Tab headers */}
-              <div className="flex border-b border-surface">
-                <button
-                  onClick={() => setActiveTab("chat")}
-                  className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                    activeTab === "chat"
-                      ? "text-primary border-b-2 border-primary"
-                      : "text-foreground/60 hover:text-foreground"
-                  }`}
-                >
-                  Chat
-                </button>
-                <button
-                  onClick={() => setActiveTab("queue")}
-                  className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                    activeTab === "queue"
-                      ? "text-primary border-b-2 border-primary"
-                      : "text-foreground/60 hover:text-foreground"
-                  }`}
-                >
-                  Up Next
-                </button>
-                <button
-                  onClick={() => setActiveTab("history")}
-                  className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                    activeTab === "history"
-                      ? "text-primary border-b-2 border-primary"
-                      : "text-foreground/60 hover:text-foreground"
-                  }`}
-                >
-                  History
-                </button>
+              <div className="flex border-b border-white/5">
+                {(["chat", "queue", "history"] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`
+                      flex-1 py-4 text-sm font-medium transition-all relative
+                      ${activeTab === tab
+                        ? "text-foreground tab-active"
+                        : "text-foreground/50 hover:text-foreground/70"
+                      }
+                    `}
+                  >
+                    {tab === "chat" ? "Chat" : tab === "queue" ? "Up Next" : "History"}
+                  </button>
+                ))}
               </div>
 
               {/* Tab content */}
-              <div className="flex-1 bg-surface/30 flex flex-col min-h-[300px]">
+              <div className="flex-1 flex flex-col overflow-hidden">
                 {activeTab === "chat" && <ChatPanel />}
                 {activeTab === "queue" && <QueueList maxTracks={10} />}
                 {activeTab === "history" && <HistoryList maxTracks={20} />}
               </div>
             </section>
-          </>
+          </div>
         )}
       </main>
 
