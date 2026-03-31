@@ -18,10 +18,21 @@ export function DevicePicker() {
     clearDeviceError,
   } = usePlaybackStore();
 
-  // Fetch devices on mount
+  // Fetch devices on mount, auto-retry on rate limit
   useEffect(() => {
     fetchDevices();
   }, [fetchDevices]);
+
+  // Auto-retry after rate limit (wait 5s then try again)
+  useEffect(() => {
+    if (deviceError?.toLowerCase().includes("rate") || deviceError?.toLowerCase().includes("exceeded")) {
+      const timer = setTimeout(() => {
+        clearDeviceError();
+        fetchDevices();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [deviceError, clearDeviceError, fetchDevices]);
 
   // Device icon component
   const DeviceIcon = ({ type }: { type: string }) => {
@@ -52,10 +63,13 @@ export function DevicePicker() {
 
   // Error state
   if (deviceError) {
+    const isRateLimit = deviceError.toLowerCase().includes("rate") || deviceError.toLowerCase().includes("exceeded");
     return (
       <div className="p-4 bg-surface rounded-lg">
         <div className="flex flex-col gap-2">
-          <p className="text-red-400">{deviceError}</p>
+          <p className="text-red-400 text-sm">
+            {isRateLimit ? "Spotify rate limit hit — retrying in 5s..." : deviceError}
+          </p>
           <button
             onClick={() => {
               clearDeviceError();
@@ -63,7 +77,7 @@ export function DevicePicker() {
             }}
             className="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors"
           >
-            Retry
+            Retry Now
           </button>
         </div>
       </div>

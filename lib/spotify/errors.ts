@@ -125,6 +125,14 @@ function isSpotifyError(error: unknown, statusCode: number): boolean {
     return true;
   }
 
+  // Check for rate limit message patterns (Spotify SDK may pass message directly)
+  if (statusCode === 429 && error instanceof Error) {
+    const msg = error.message.toLowerCase();
+    if (msg.includes("rate limit") || msg.includes("too many requests") || msg.includes("exceeded")) {
+      return true;
+    }
+  }
+
   return false;
 }
 
