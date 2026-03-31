@@ -11,8 +11,8 @@ import {
   playTracks,
   addToQueue,
   searchTracks,
-  searchTrackExact,
 } from "@/lib/spotify";
+import { loadTokens } from "@/lib/spotify/auth";
 import { VibeInterpretation } from "@/lib/chat/types";
 import { Track, QueueTrack } from "@/lib/spotify/types";
 import { RefinementResult } from "@/lib/ai/types";
@@ -82,12 +82,15 @@ export function useVibeCuration() {
 
         const context = getSessionContext();
 
-        // Step 1: Ask Claude to curate a specific track list
+        // Step 1: Ask Claude to curate + validate tracks — all server-side to avoid
+        // SDK retry-with-Retry-After hanging the browser for minutes
+        const tokens = loadTokens();
         const curateResponse = await fetch("/api/curate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message: userMessage,
+            accessToken: tokens?.accessToken,
             context: {
               excludedGenres: context.excludedGenres,
               excludedArtists: context.excludedArtists,
@@ -121,35 +124,16 @@ export function useVibeCuration() {
           return { success: true, needsClarification: true, clarification };
         }
 
-        // Step 2: Search Spotify for each suggested track — validate existence, filter hallucinations
         setState((s) => ({ ...s, currentStep: "recommending" }));
 
-        const suggested: Array<{ artist: string; title: string }> = curateData.tracks || [];
+        // Server returns validated Track objects; fall back to keyword search if empty
+        let tracks: Track[] = curateData.tracks || [];
         const curatorNote: string = curateData.curatorNote || "";
 
-        // Search in parallel batches to keep rate limits manageable
-        const BATCH_SIZE = 5;
-        const validatedTracks: Track[] = [];
-        const seenIds = new Set<string>(context.playedTrackIds);
-
-        for (let i = 0; i < suggested.length && validatedTracks.length < 15; i += BATCH_SIZE) {
-          const batch = suggested.slice(i, i + BATCH_SIZE);
-          const results = await Promise.all(
-            batch.map((s) => searchTrackExact(s.artist, s.title).catch(() => null))
-          );
-          for (const track of results) {
-            if (track && !seenIds.has(track.id)) {
-              validatedTracks.push(track);
-              seenIds.add(track.id);
-            }
-          }
-        }
-
-        // If we got fewer than 3 validated tracks, fall back to keyword search
-        let tracks = validatedTracks;
         if (tracks.length < 3) {
           const fallback = await searchTracks(userMessage, 10);
-          tracks = fallback.filter((t) => !seenIds.has(t.id));
+          const seenIds = new Set(tracks.map((t: Track) => t.id));
+          tracks = [...tracks, ...fallback.filter((t) => !seenIds.has(t.id))];
         }
 
         if (tracks.length === 0) {
