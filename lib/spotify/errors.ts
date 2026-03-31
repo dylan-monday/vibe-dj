@@ -50,17 +50,15 @@ export async function withErrorHandling<T>(
       throw new SpotifyApiError("Authentication expired. Please log in again.", 401);
     }
 
-    // Handle 429 - rate limited
+    // Handle 429 - rate limited (max 1 retry with short backoff to avoid hanging)
     if (isSpotifyError(error, 429)) {
-      const retryAfter = getRetryAfter(error) || getNextBackoff();
-      if (retryCount < 3) {
-        await sleep(retryAfter);
+      if (retryCount < 1) {
+        await sleep(2000); // fixed 2s — ignore Retry-After to prevent long hangs
         return withErrorHandling(operation, retryCount + 1);
       }
       throw new SpotifyApiError(
         "Rate limited. Please wait before trying again.",
-        429,
-        retryAfter
+        429
       );
     }
 

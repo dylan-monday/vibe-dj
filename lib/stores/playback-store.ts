@@ -122,8 +122,12 @@ export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
     set({ isLoadingDevices: true, deviceError: null });
 
     try {
-      const devices = await getDevices();
-      // Prefer the Spotify-reported active device, fall back to our saved one
+      // 8s timeout — prevents hanging on rate-limited retries
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new SpotifyApiError("Request timed out — check Spotify is open", 408)), 8000)
+      );
+      const devices = await Promise.race([getDevices(), timeout]);
+
       const spotifyActive = devices.find((d) => d.is_active) || null;
       const restoredDevice = savedDevice
         ? devices.find((d) => d.id === savedDevice.id) || null
