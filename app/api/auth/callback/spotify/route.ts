@@ -9,8 +9,12 @@ export async function GET(request: NextRequest) {
   const error = searchParams.get("error");
   const state = searchParams.get("state");
 
-  // Use request origin to determine app URL
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+  // Use the actual Host header to preserve 127.0.0.1 vs localhost distinction
+  // This is critical for Spotify OAuth which requires exact redirect_uri match
+  const host = request.headers.get("host") || request.nextUrl.host;
+  const protocol = request.nextUrl.protocol;
+  const appUrl = `${protocol}//${host}`;
+  console.log("[OAuth Callback] Redirecting to:", appUrl);
 
   // Handle OAuth errors
   if (error) {

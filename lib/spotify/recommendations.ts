@@ -7,6 +7,7 @@ import { SpotifyApiError, withErrorHandling } from "./errors";
 import { Track } from "./types";
 import { VibeInterpretation } from "@/lib/chat/types";
 import { searchArtist } from "./search";
+import { isRateLimited } from "./rate-limit";
 
 // Genre mapping: abstract terms → Spotify genre seeds
 const GENRE_MAP: Record<string, string[]> = {
@@ -140,6 +141,11 @@ export async function getRecommendations(
   vibe: VibeInterpretation,
   options: RecommendationOptions = {}
 ): Promise<RecommendationResult> {
+  // Check rate limit FIRST
+  if (isRateLimited()) {
+    throw new SpotifyApiError("Rate limited. Please wait before trying again.", 429);
+  }
+
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {

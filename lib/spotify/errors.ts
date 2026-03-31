@@ -1,6 +1,7 @@
 // Shared Spotify API error handling utilities
 
 import { refreshTokens } from "./auth";
+import { setRateLimited } from "./rate-limit";
 
 // Error types for caller handling
 export class SpotifyApiError extends Error {
@@ -38,7 +39,15 @@ export async function withErrorHandling<T>(
     resetBackoff();
     return result;
   } catch (error: unknown) {
-    console.error("[withErrorHandling] Caught error:", error);
+    // Log full error details to understand what Spotify is returning
+    console.error("[withErrorHandling] Caught error:", {
+      message: error instanceof Error ? error.message : String(error),
+      status: (error as { status?: number })?.status,
+      statusCode: (error as { statusCode?: number })?.statusCode,
+      body: (error as { body?: unknown })?.body,
+      headers: (error as { headers?: unknown })?.headers,
+      name: error instanceof Error ? error.name : undefined,
+    });
     // Handle 401 - token expired
     if (isSpotifyError(error, 401)) {
       if (retryCount < 1) {
@@ -50,15 +59,23 @@ export async function withErrorHandling<T>(
       throw new SpotifyApiError("Authentication expired. Please log in again.", 401);
     }
 
-    // Handle 429 - rate limited (max 1 retry with short backoff to avoid hanging)
-    if (isSpotifyError(error, 429)) {
-      if (retryCount < 1) {
-        await sleep(2000); // fixed 2s — ignore Retry-After to prevent long hangs
-        return withErrorHandling(operation, retryCount + 1);
-      }
+    // Handle 429 - rate limited (no retry - just back off and let user wait)
+    // Check both status code AND error message patterns for rate limits
+    const isRateLimit = isSpotifyError(error, 429) || isRateLimitError(error);
+
+    if (isRateLimit) {
+      // Set global rate limit so other consumers (curation, polling) back off
+      // Default to 60s if no Retry-After header (Spotify SDK often doesn't expose it)
+      const retryAfterMs = getRetryAfter(error) ?? 60000;
+      setRateLimited(retryAfterMs);
+
+      console.log("[withErrorHandling] Rate limit detected - backing off for", retryAfterMs, "ms");
+
+      // Don't retry rate limits - just fail and let the UI show the wait message
       throw new SpotifyApiError(
         "Rate limited. Please wait before trying again.",
-        429
+        429,
+        retryAfterMs
       );
     }
 
@@ -123,12 +140,37 @@ function isSpotifyError(error: unknown, statusCode: number): boolean {
     return true;
   }
 
-  // Check for rate limit message patterns (Spotify SDK may pass message directly)
-  if (statusCode === 429 && error instanceof Error) {
+  return false;
+}
+
+// Dedicated rate limit detection (catches more patterns than isSpotifyError)
+function isRateLimitError(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) {
+    return false;
+  }
+
+  // Check error message for rate limit keywords
+  if (error instanceof Error) {
     const msg = error.message.toLowerCase();
-    if (msg.includes("rate limit") || msg.includes("too many requests") || msg.includes("exceeded")) {
+    if (
+      msg.includes("rate limit") ||
+      msg.includes("too many requests") ||
+      msg.includes("exceeded") ||
+      msg.includes("429")
+    ) {
       return true;
     }
+  }
+
+  // Check for 429 in any status/statusCode/code property
+  const errorObj = error as Record<string, unknown>;
+  if (
+    errorObj.status === 429 ||
+    errorObj.statusCode === 429 ||
+    errorObj.code === 429 ||
+    errorObj.code === "429"
+  ) {
+    return true;
   }
 
   return false;

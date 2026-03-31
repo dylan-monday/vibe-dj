@@ -69,6 +69,7 @@ async function generateCodeChallenge(verifier: string): Promise<string> {
 export async function buildAuthUrl(): Promise<string> {
   const clientId = getClientId();
   const redirectUri = getRedirectUri();
+  console.log("[Auth] buildAuthUrl - origin:", window.location.origin, "redirectUri:", redirectUri);
   const verifier = generateRandomString(64);
 
   // Store verifier for callback
@@ -95,6 +96,8 @@ export async function exchangeCodeForTokens(code: string): Promise<TokenState> {
   const redirectUri = getRedirectUri();
   const verifier = sessionStorage.getItem("spotify-pkce-verifier");
 
+  console.log("[Auth] Token exchange params:", { clientId: clientId.slice(0, 8) + "...", redirectUri, hasVerifier: !!verifier });
+
   if (!verifier) {
     throw new Error("PKCE verifier not found - auth flow corrupted");
   }
@@ -115,8 +118,10 @@ export async function exchangeCodeForTokens(code: string): Promise<TokenState> {
 
   if (!response.ok) {
     const error = await response.json();
+    console.error("[Auth] Token exchange error:", error);
     throw new Error(`Token exchange failed: ${error.error_description || error.error}`);
   }
+  console.log("[Auth] Token exchange response OK");
 
   const data = await response.json();
 
@@ -140,6 +145,13 @@ export async function exchangeCodeForTokens(code: string): Promise<TokenState> {
 
 // Refresh tokens using refresh_token grant
 export async function refreshTokens(): Promise<TokenState | null> {
+  // Check rate limit BEFORE attempting refresh (token endpoint counts toward rate limit)
+  const { isRateLimited } = await import("./rate-limit");
+  if (isRateLimited()) {
+    console.log("[Auth] Skipping token refresh - rate limited");
+    return null;
+  }
+
   // Singleton pattern: if already refreshing, return existing promise
   if (isRefreshing && refreshPromise) {
     return refreshPromise;
@@ -247,9 +259,17 @@ export async function ensureValidToken(): Promise<boolean> {
   const tokens = loadTokens();
   if (!tokens) return false;
 
-  if (shouldRefreshToken(tokens.expiresAt)) {
+  // Token already expired — must refresh before doing anything
+  const isExpired = tokens.expiresAt <= Date.now();
+
+  if (isExpired || shouldRefreshToken(tokens.expiresAt)) {
     const refreshed = await refreshTokens();
-    return refreshed !== null;
+    if (!refreshed) {
+      // Refresh failed — clear stale tokens so UI shows login
+      clearTokens();
+      return false;
+    }
+    return true;
   }
 
   // Token still valid, ensure client is initialized

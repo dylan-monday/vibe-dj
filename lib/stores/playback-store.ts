@@ -41,6 +41,7 @@ interface PlaybackStore {
   // Error state
   playbackError: string | null;
   pollingError: string | null;
+  rateLimitRemaining: number;
 
   // Actions - Device management
   fetchDevices: () => Promise<void>;
@@ -65,6 +66,7 @@ interface PlaybackStore {
   stopPolling: () => void;
   setPollingInterval: (ms: number) => void;
   setPollingError: (error: string | null) => void;
+  setRateLimitRemaining: (ms: number) => void;
 }
 
 // Persist selected device across sessions
@@ -113,28 +115,45 @@ export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
   // Error state
   playbackError: null,
   pollingError: null,
+  rateLimitRemaining: 0,
 
   // Fetch available devices
   fetchDevices: async () => {
-    // If we have a saved device, use it immediately — no API call needed
     const savedDevice = loadSavedDevice();
+
+    // Use saved device as optimistic default, but still verify it's online
     if (savedDevice) {
       set({ activeDevice: savedDevice, devices: [savedDevice], isLoadingDevices: false });
-      return;
+    } else {
+      set({ isLoadingDevices: true, deviceError: null });
     }
-
-    // No saved device — need to ask Spotify
-    set({ isLoadingDevices: true, deviceError: null });
 
     try {
       const timeout = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new SpotifyApiError("Request timed out — open Spotify on a device first", 408)), 8000)
       );
       const devices = await Promise.race([getDevices(), timeout]);
-      const active = devices.find((d) => d.is_active) || null;
-      if (active) saveDevice(active);
-      set({ devices, activeDevice: active, isLoadingDevices: false });
+
+      // Check if saved device is still in the list
+      const savedStillOnline = savedDevice
+        ? devices.find((d) => d.id === savedDevice.id)
+        : null;
+      const active = savedStillOnline || devices.find((d) => d.is_active) || null;
+
+      if (active) {
+        saveDevice(active);
+      } else if (savedDevice && !savedStillOnline) {
+        // Saved device went offline — clear it
+        if (typeof window !== "undefined") localStorage.removeItem(DEVICE_KEY);
+      }
+
+      set({ devices, activeDevice: active, isLoadingDevices: false, deviceError: null });
     } catch (error) {
+      // If we had a saved device, keep using it optimistically — polling will catch issues
+      if (savedDevice) {
+        set({ isLoadingDevices: false });
+        return;
+      }
       const message = error instanceof SpotifyApiError ? error.message : "Failed to fetch devices";
       set({ isLoadingDevices: false, deviceError: message });
     }
@@ -354,5 +373,9 @@ export const usePlaybackStore = create<PlaybackStore>((set, get) => ({
 
   setPollingError: (error: string | null) => {
     set({ pollingError: error });
+  },
+
+  setRateLimitRemaining: (ms: number) => {
+    set({ rateLimitRemaining: ms });
   },
 }));

@@ -7,6 +7,11 @@ import { SpotifyApiError, withErrorHandling } from "./errors";
 
 // Get current user's ID
 export async function getCurrentUserId(): Promise<string> {
+  const { isRateLimited } = await import("./rate-limit");
+  if (isRateLimited()) {
+    throw new SpotifyApiError("Rate limited. Please wait before trying again.", 429);
+  }
+
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {
@@ -24,6 +29,11 @@ export async function createPlaylist(
   name: string,
   description?: string
 ): Promise<{ id: string; url: string }> {
+  const { isRateLimited } = await import("./rate-limit");
+  if (isRateLimited()) {
+    throw new SpotifyApiError("Rate limited. Please wait before trying again.", 429);
+  }
+
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {
@@ -49,6 +59,11 @@ export async function addTracksToPlaylist(
   playlistId: string,
   trackIds: string[]
 ): Promise<void> {
+  const { isRateLimited } = await import("./rate-limit");
+  if (isRateLimited()) {
+    throw new SpotifyApiError("Rate limited. Please wait before trying again.", 429);
+  }
+
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {

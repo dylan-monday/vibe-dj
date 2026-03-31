@@ -34,15 +34,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   // Initialize auth state on app load
   initialize: async () => {
+    console.log("[AuthStore] initialize() called");
     set({ isLoading: true, error: null });
 
     try {
       const hasValidToken = await ensureValidToken();
+      console.log("[AuthStore] ensureValidToken returned:", hasValidToken);
       set({
         isAuthenticated: hasValidToken,
         isLoading: false,
       });
     } catch (error) {
+      console.error("[AuthStore] initialize error:", error);
       set({
         isAuthenticated: false,
         isLoading: false,

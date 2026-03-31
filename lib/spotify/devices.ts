@@ -11,6 +11,11 @@ export { SpotifyApiError };
 
 // Get available devices
 export async function getDevices(): Promise<SpotifyDevice[]> {
+  const { isRateLimited } = await import("./rate-limit");
+  if (isRateLimited()) {
+    throw new SpotifyApiError("Rate limited. Please wait before trying again.", 429);
+  }
+
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {
@@ -36,6 +41,11 @@ export async function transferPlayback(
   deviceId: string,
   startPlaying = false
 ): Promise<void> {
+  const { isRateLimited } = await import("./rate-limit");
+  if (isRateLimited()) {
+    throw new SpotifyApiError("Rate limited. Please wait before trying again.", 429);
+  }
+
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {

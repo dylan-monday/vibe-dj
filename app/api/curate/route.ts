@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SpotifyApi } from "@spotify/web-api-ts-sdk";
 import { curateTracklist } from "@/lib/ai";
 import { Track } from "@/lib/spotify/types";
 
@@ -15,7 +14,8 @@ async function searchTrackServer(
   accessToken: string,
   artist: string,
   title: string,
-  signal: AbortSignal
+  signal: AbortSignal,
+  rateLimitCallback?: () => void
 ): Promise<Track | null> {
   const queries = [
     `track:"${title}" artist:"${artist}"`,
@@ -29,7 +29,14 @@ async function searchTrackServer(
         headers: { Authorization: `Bearer ${accessToken}` },
         signal,
       });
-      if (!res.ok) continue; // 429, 404, etc — just skip this track
+      if (res.status === 429) {
+        // Rate limited — notify parent and wait before returning
+        rateLimitCallback?.();
+        const retryAfter = parseInt(res.headers.get("retry-after") || "2", 10);
+        await new Promise((r) => setTimeout(r, Math.min(retryAfter * 1000, 5000)));
+        return null; // Skip this track entirely, don't try the looser query
+      }
+      if (!res.ok) continue;
       const data = await res.json();
       const item = data?.tracks?.items?.[0];
       if (!item) continue;
@@ -93,29 +100,40 @@ export async function POST(request: NextRequest) {
     // Step 2: Validate tracks against Spotify — skip this if no token provided
     // Uses raw fetch with a 15s abort so we never hang on rate-limited searches
     let validatedTracks: Track[] = [];
+    let rateLimitHit = false;
 
     if (accessToken && suggested.length > 0) {
       const controller = new AbortController();
       const searchTimeout = setTimeout(() => controller.abort(), 15000);
 
       try {
-        const BATCH = 5;
+        const BATCH = 3; // Smaller batches to stay under rate limits
         const seen = new Set<string>();
 
         for (let i = 0; i < suggested.length && validatedTracks.length < 15; i += BATCH) {
           if (controller.signal.aborted) break;
+
+          // Space out batches to avoid hitting Spotify rate limits
+          if (i > 0) await new Promise((r) => setTimeout(r, 200));
+
           const batch = suggested.slice(i, i + BATCH);
           const results = await Promise.all(
             batch.map((s) =>
-              searchTrackServer(accessToken, s.artist, s.title, controller.signal)
+              searchTrackServer(accessToken, s.artist, s.title, controller.signal, () => {
+                rateLimitHit = true;
+              })
             )
           );
+
           for (const track of results) {
             if (track && !seen.has(track.id)) {
               validatedTracks.push(track);
               seen.add(track.id);
             }
           }
+
+          // If we already have enough tracks, stop early
+          if (validatedTracks.length >= 10) break;
         }
       } finally {
         clearTimeout(searchTimeout);
@@ -128,6 +146,7 @@ export async function POST(request: NextRequest) {
       suggested: validatedTracks.length === 0 ? suggested : undefined,
       curatorNote: result.curatorNote,
       responseTimeMs: result.responseTimeMs,
+      rateLimitHit, // Tell client if we hit rate limits
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";

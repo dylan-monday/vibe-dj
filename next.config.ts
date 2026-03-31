@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Allow 127.0.0.1 for local development (Spotify OAuth workaround)
+  allowedDevOrigins: ["127.0.0.1"],
+
   // Externalize better-sqlite3 - it's a native module that can't run on Vercel
   serverExternalPackages: ["better-sqlite3"],
 

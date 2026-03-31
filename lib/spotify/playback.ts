@@ -8,6 +8,12 @@ import { SpotifyApiError, withErrorHandling } from "./errors";
 
 // Get current playback state
 export async function getPlaybackState(): Promise<PlaybackState | null> {
+  // Check rate limit BEFORE attempting token refresh
+  const { isRateLimited } = await import("./rate-limit");
+  if (isRateLimited()) {
+    throw new SpotifyApiError("Rate limited. Please wait before trying again.", 429);
+  }
+
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {
@@ -70,6 +76,11 @@ export async function getPlaybackState(): Promise<PlaybackState | null> {
 
 // Resume playback
 export async function play(deviceId?: string): Promise<void> {
+  const { isRateLimited } = await import("./rate-limit");
+  if (isRateLimited()) {
+    throw new SpotifyApiError("Rate limited. Please wait before trying again.", 429);
+  }
+
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {
@@ -84,6 +95,11 @@ export async function play(deviceId?: string): Promise<void> {
 
 // Pause playback
 export async function pause(deviceId?: string): Promise<void> {
+  const { isRateLimited } = await import("./rate-limit");
+  if (isRateLimited()) {
+    throw new SpotifyApiError("Rate limited. Please wait before trying again.", 429);
+  }
+
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {
@@ -97,6 +113,11 @@ export async function pause(deviceId?: string): Promise<void> {
 
 // Skip to next track
 export async function skipNext(deviceId?: string): Promise<void> {
+  const { isRateLimited } = await import("./rate-limit");
+  if (isRateLimited()) {
+    throw new SpotifyApiError("Rate limited. Please wait before trying again.", 429);
+  }
+
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {
@@ -110,6 +131,11 @@ export async function skipNext(deviceId?: string): Promise<void> {
 
 // Skip to previous track
 export async function skipPrevious(deviceId?: string): Promise<void> {
+  const { isRateLimited } = await import("./rate-limit");
+  if (isRateLimited()) {
+    throw new SpotifyApiError("Rate limited. Please wait before trying again.", 429);
+  }
+
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {
@@ -123,6 +149,11 @@ export async function skipPrevious(deviceId?: string): Promise<void> {
 
 // Set volume (0-100)
 export async function setVolume(percent: number): Promise<void> {
+  const { isRateLimited } = await import("./rate-limit");
+  if (isRateLimited()) {
+    throw new SpotifyApiError("Rate limited. Please wait before trying again.", 429);
+  }
+
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {
@@ -139,6 +170,11 @@ export async function setVolume(percent: number): Promise<void> {
 
 // Seek to position in track
 export async function seekToPosition(positionMs: number): Promise<void> {
+  const { isRateLimited } = await import("./rate-limit");
+  if (isRateLimited()) {
+    throw new SpotifyApiError("Rate limited. Please wait before trying again.", 429);
+  }
+
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {
@@ -152,6 +188,11 @@ export async function seekToPosition(positionMs: number): Promise<void> {
 
 // Play specific tracks (adds to queue and starts playback)
 export async function playTracks(trackIds: string[], deviceId?: string): Promise<void> {
+  const { isRateLimited } = await import("./rate-limit");
+  if (isRateLimited()) {
+    throw new SpotifyApiError("Rate limited. Please wait before trying again.", 429);
+  }
+
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {
@@ -174,6 +215,11 @@ export async function playTracks(trackIds: string[], deviceId?: string): Promise
 
 // Add tracks to queue (after currently playing track)
 export async function addToQueue(trackIds: string[], deviceId?: string): Promise<void> {
+  const { isRateLimited } = await import("./rate-limit");
+  if (isRateLimited()) {
+    throw new SpotifyApiError("Rate limited. Please wait before trying again.", 429);
+  }
+
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {

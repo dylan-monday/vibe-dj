@@ -10,6 +10,11 @@ import { Track } from "./types";
 export async function searchArtist(
   name: string
 ): Promise<{ id: string; name: string } | null> {
+  const { isRateLimited } = await import("./rate-limit");
+  if (isRateLimited()) {
+    throw new SpotifyApiError("Rate limited. Please wait before trying again.", 429);
+  }
+
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {
@@ -28,6 +33,11 @@ export async function searchTracks(
   query: string,
   limit: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 20 | 50 = 10
 ): Promise<Track[]> {
+  const { isRateLimited } = await import("./rate-limit");
+  if (isRateLimited()) {
+    throw new SpotifyApiError("Rate limited. Please wait before trying again.", 429);
+  }
+
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {
@@ -62,6 +72,11 @@ export async function searchTrackExact(
   artist: string,
   title: string
 ): Promise<Track | null> {
+  const { isRateLimited } = await import("./rate-limit");
+  if (isRateLimited()) {
+    throw new SpotifyApiError("Rate limited. Please wait before trying again.", 429);
+  }
+
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {
@@ -119,6 +134,11 @@ export async function searchTrackExact(
 
 // Search for genre seeds - Spotify has a fixed list
 export async function getAvailableGenreSeeds(): Promise<string[]> {
+  const { isRateLimited } = await import("./rate-limit");
+  if (isRateLimited()) {
+    throw new SpotifyApiError("Rate limited. Please wait before trying again.", 429);
+  }
+
   await ensureValidToken();
   const client = getSpotifyClient();
   if (!client) {

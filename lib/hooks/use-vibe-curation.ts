@@ -1,7 +1,7 @@
 // Vibe curation hook
 // Orchestrates: message → interpretation → recommendations → playback
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useRef } from "react";
 import { useChatStore } from "@/lib/stores/chat-store";
 import { useSessionStore } from "@/lib/stores/session-store";
 import { usePlaybackStore } from "@/lib/stores/playback-store";
@@ -11,11 +11,13 @@ import {
   playTracks,
   addToQueue,
   searchTracks,
+  createRecommendationSession,
 } from "@/lib/spotify";
 import { loadTokens } from "@/lib/spotify/auth";
 import { VibeInterpretation } from "@/lib/chat/types";
 import { Track, QueueTrack } from "@/lib/spotify/types";
 import { RefinementResult } from "@/lib/ai/types";
+import { isRateLimited, setRateLimited, rateLimitRemainingMs } from "@/lib/spotify/rate-limit";
 
 // Convert Track to QueueTrack format
 function trackToQueueTrack(track: Track): QueueTrack {
@@ -58,8 +60,11 @@ export function useVibeCuration() {
     pendingClarification: null,
   });
 
+  // AbortController to cancel in-flight requests when new one starts
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   const { addMessage, addErrorMessage, setLoading } = useChatStore();
-  const { getSessionContext, addVibe, addPlayedTracks, addExclusions } =
+  const { getSessionContext, addVibe, addPlayedTracks, addExclusions, addUsedSeed } =
     useSessionStore();
   const { setUpcoming } = useQueueStore();
 
@@ -69,6 +74,26 @@ export function useVibeCuration() {
 
   const processVibe = useCallback(
     async (userMessage: string): Promise<CurationResult> => {
+      // Proactive rate limit check - give user immediate feedback
+      if (isRateLimited()) {
+        const remainingSec = Math.ceil(rateLimitRemainingMs() / 1000);
+        const errorMessage = `Spotify API is rate limited. Please wait ${remainingSec} seconds and try again.`;
+        addErrorMessage({
+          role: "error",
+          content: errorMessage,
+          retryable: true,
+          originalPrompt: userMessage,
+        });
+        return { success: false, error: errorMessage };
+      }
+
+      // Cancel any in-flight request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
+      const signal = abortControllerRef.current.signal;
+
       setState({
         isProcessing: true,
         currentStep: "interpreting",
@@ -96,6 +121,7 @@ export function useVibeCuration() {
               excludedArtists: context.excludedArtists,
             },
           }),
+          signal,
         });
 
         if (!curateResponse.ok) {
@@ -103,6 +129,11 @@ export function useVibeCuration() {
         }
 
         const curateData = await curateResponse.json();
+
+        // Update rate limit state if server hit limits
+        if (curateData.rateLimitHit) {
+          setRateLimited(60000); // 60s backoff
+        }
 
         // Handle clarification request
         if (curateData.needsClarification) {
@@ -131,7 +162,20 @@ export function useVibeCuration() {
         const curatorNote: string = curateData.curatorNote || "";
 
         if (tracks.length < 3) {
-          const fallback = await searchTracks(userMessage, 10);
+          // Extract music-related terms for fallback search instead of raw message
+          // Common genre/mood words that Spotify search handles well
+          const musicTerms = userMessage
+            .toLowerCase()
+            .split(/\s+/)
+            .filter((word) =>
+              /^(jazz|rock|pop|hip-hop|rap|soul|funk|blues|electronic|ambient|house|techno|classical|indie|alternative|metal|punk|reggae|disco|r&b|rnb|country|folk|latin|bop|bebop|swing|fusion|lo-fi|lofi|chill|upbeat|mellow|energetic|acoustic|instrumental)$/i.test(word)
+            );
+
+          const searchQuery = musicTerms.length > 0
+            ? musicTerms.slice(0, 3).join(" ")
+            : "popular music"; // Safe fallback
+
+          const fallback = await searchTracks(searchQuery, 10);
           const seenIds = new Set(tracks.map((t: Track) => t.id));
           tracks = [...tracks, ...fallback.filter((t) => !seenIds.has(t.id))];
         }
@@ -165,6 +209,11 @@ export function useVibeCuration() {
 
         return { success: true, tracks };
       } catch (error) {
+        // Ignore AbortError - this means a new request replaced this one
+        if (error instanceof Error && error.name === "AbortError") {
+          return { success: false, error: "Request cancelled" };
+        }
+
         console.error("[processVibe] Error:", error);
         const errorMessage =
           error instanceof Error ? error.message : "Something went wrong";
@@ -265,11 +314,23 @@ export function useVibeCuration() {
           },
         };
 
-        // Get new recommendations
-        const { tracks } = await getRecommendations(adjustedVibe, {
+        // Create session with previously used seeds for rotation
+        const sessionStore = useSessionStore.getState();
+        const session = createRecommendationSession();
+        sessionStore.usedSeeds.artists.forEach((a) => session.usedArtistSeeds.add(a));
+        sessionStore.usedSeeds.tracks.forEach((t) => session.usedTrackSeeds.add(t));
+        sessionStore.usedSeeds.genres.forEach((g) => session.usedGenreSeeds.add(g));
+
+        // Get new recommendations with seed rotation
+        const { tracks, seedsUsed } = await getRecommendations(adjustedVibe, {
           limit: 10,
           playedTrackIds: context.playedTrackIds,
+          session,
         });
+
+        // Track used seeds for future rotation
+        seedsUsed.artists.forEach((a) => addUsedSeed("artist", a));
+        seedsUsed.genres.forEach((g) => addUsedSeed("genre", g));
 
         if (tracks.length === 0) {
           throw new Error("No tracks found matching adjusted vibe.");
@@ -348,6 +409,7 @@ export function useVibeCuration() {
       addVibe,
       addPlayedTracks,
       addExclusions,
+      addUsedSeed,
       setUpcoming,
     ]
   );
