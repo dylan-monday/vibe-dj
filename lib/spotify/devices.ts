@@ -19,7 +19,7 @@ export async function getDevices(): Promise<SpotifyDevice[]> {
 
   return withErrorHandling(async () => {
     const response = await client.player.getAvailableDevices();
-    const devices = response.devices.map((device) => ({
+    return response.devices.map((device) => ({
       id: device.id,
       is_active: device.is_active,
       is_private_session: device.is_private_session,
@@ -28,8 +28,6 @@ export async function getDevices(): Promise<SpotifyDevice[]> {
       type: device.type,
       volume_percent: device.volume_percent,
     }));
-    console.log(`[getDevices] Found ${devices.length} devices:`, devices.map(d => `${d.name} (active: ${d.is_active}, id: ${d.id})`));
-    return devices;
   });
 }
 
