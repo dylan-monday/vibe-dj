@@ -5,6 +5,7 @@ import { getSpotifyClient } from "./client";
 import { PlaybackState } from "./types";
 import { ensureValidToken } from "./auth";
 import { SpotifyApiError, withErrorHandling } from "./errors";
+import { getDevices } from "./devices";
 
 // Get current playback state
 export async function getPlaybackState(): Promise<PlaybackState | null> {
@@ -165,9 +166,22 @@ export async function playTracks(trackIds: string[]): Promise<void> {
   // Convert IDs to URIs
   const uris = trackIds.map((id) => `spotify:track:${id}`);
 
+  // Find a device to play on
+  const devices = await getDevices();
+  if (devices.length === 0) {
+    throw new SpotifyApiError(
+      "No Spotify devices found. Open Spotify on your phone, computer, or speaker.",
+      404
+    );
+  }
+
+  // Prefer active device, otherwise use first available
+  const targetDevice = devices.find((d) => d.is_active) || devices[0];
+  const deviceId = targetDevice.id || "";
+
   return withErrorHandling(async () => {
-    // Start playback with the track URIs on the active device
-    await client.player.startResumePlayback("", undefined, uris);
+    // Start playback with the track URIs on the target device
+    await client.player.startResumePlayback(deviceId, undefined, uris);
   });
 }
 
@@ -179,11 +193,21 @@ export async function addToQueue(trackIds: string[]): Promise<void> {
     throw new SpotifyApiError("Not authenticated", 401);
   }
 
+  // Find active device for queue operations
+  const devices = await getDevices();
+  const activeDevice = devices.find((d) => d.is_active);
+  if (!activeDevice) {
+    throw new SpotifyApiError(
+      "No active Spotify device. Start playing something first.",
+      404
+    );
+  }
+
   return withErrorHandling(async () => {
     // Add each track to queue sequentially
     for (const trackId of trackIds) {
       const uri = `spotify:track:${trackId}`;
-      await client.player.addItemToPlaybackQueue(uri);
+      await client.player.addItemToPlaybackQueue(uri, activeDevice.id || undefined);
     }
   });
 }
