@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.80.0",
     "@spotify/web-api-ts-sdk": "^1.2.0",
     "framer-motion": "^12.38.0",
     "next": "16.2.1",

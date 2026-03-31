@@ -152,3 +152,41 @@ export async function seekToPosition(positionMs: number): Promise<void> {
     await client.player.seekToPosition(positionMs);
   });
 }
+
+// Play specific tracks (adds to queue and starts playback)
+export async function playTracks(trackIds: string[]): Promise<void> {
+  await ensureValidToken();
+  const client = getSpotifyClient();
+  if (!client) {
+    throw new SpotifyApiError("Not authenticated", 401);
+  }
+
+  if (trackIds.length === 0) {
+    throw new SpotifyApiError("No tracks to play", 400);
+  }
+
+  // Convert IDs to URIs
+  const uris = trackIds.map((id) => `spotify:track:${id}`);
+
+  return withErrorHandling(async () => {
+    // Start playback with the track URIs
+    await client.player.startResumePlayback("", undefined, uris);
+  });
+}
+
+// Add tracks to queue (after currently playing track)
+export async function addToQueue(trackIds: string[]): Promise<void> {
+  await ensureValidToken();
+  const client = getSpotifyClient();
+  if (!client) {
+    throw new SpotifyApiError("Not authenticated", 401);
+  }
+
+  return withErrorHandling(async () => {
+    // Add each track to queue sequentially
+    for (const trackId of trackIds) {
+      const uri = `spotify:track:${trackId}`;
+      await client.player.addItemToPlaybackQueue(uri);
+    }
+  });
+}

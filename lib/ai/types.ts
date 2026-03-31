@@ -1,7 +1,7 @@
 // AI module types
 // Re-exports VibeInterpretation from chat types for convenience
 
-export { VibeInterpretation } from "@/lib/chat/types";
+export type { VibeInterpretation } from "@/lib/chat/types";
 
 // Claude API response wrapper
 export interface InterpretationResult {

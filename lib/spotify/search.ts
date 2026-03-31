@@ -26,7 +26,7 @@ export async function searchArtist(
 // Search for tracks by query, returns array of tracks
 export async function searchTracks(
   query: string,
-  limit: number = 10
+  limit: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 20 | 50 = 10
 ): Promise<Track[]> {
   await ensureValidToken();
   const client = getSpotifyClient();

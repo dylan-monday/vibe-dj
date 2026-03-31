@@ -2,12 +2,14 @@
 
 import { useEffect, useRef } from "react";
 import { useChatStore } from "@/lib/stores/chat-store";
+import { useVibeCuration } from "@/lib/hooks/use-vibe-curation";
 import { ChatMessage } from "./chat-message";
 import { ChatInput } from "./chat-input";
 
 export function ChatPanel() {
   const { messages, isLoading, currentError, addMessage, retryLastMessage } =
     useChatStore();
+  const { processVibe, currentStep } = useVibeCuration();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom on new messages
@@ -15,25 +17,32 @@ export function ChatPanel() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
 
-  const handleSubmit = (content: string) => {
+  const handleSubmit = async (content: string) => {
     // Add user message
     addMessage({ role: "user", content });
 
-    // TODO: Phase 4 will add AI processing here
-    // For now, add a placeholder assistant response
-    setTimeout(() => {
-      addMessage({
-        role: "assistant",
-        content:
-          "I understand you want to hear something like that! AI curation coming in Phase 4. For now, enjoy the player controls above.",
-      });
-    }, 1000);
+    // Process the vibe (interpret → recommend → play)
+    await processVibe(content);
   };
 
-  const handleRetry = () => {
+  const handleRetry = async () => {
     const prompt = retryLastMessage();
     if (prompt) {
-      handleSubmit(prompt);
+      await processVibe(prompt);
+    }
+  };
+
+  // Get step-specific loading message
+  const getLoadingMessage = () => {
+    switch (currentStep) {
+      case "interpreting":
+        return "Understanding your vibe...";
+      case "recommending":
+        return "Finding the perfect tracks...";
+      case "playing":
+        return "Starting playback...";
+      default:
+        return "Thinking...";
     }
   };
 
@@ -88,11 +97,20 @@ export function ChatPanel() {
       {isLoading && (
         <div className="flex items-center gap-2 px-4 py-2 text-foreground/60">
           <div className="flex gap-1">
-            <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
-            <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
-            <span className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
+            <span
+              className="w-2 h-2 rounded-full bg-primary animate-bounce"
+              style={{ animationDelay: "0ms" }}
+            />
+            <span
+              className="w-2 h-2 rounded-full bg-primary animate-bounce"
+              style={{ animationDelay: "150ms" }}
+            />
+            <span
+              className="w-2 h-2 rounded-full bg-primary animate-bounce"
+              style={{ animationDelay: "300ms" }}
+            />
           </div>
-          <span className="text-sm">Thinking...</span>
+          <span className="text-sm">{getLoadingMessage()}</span>
         </div>
       )}
 

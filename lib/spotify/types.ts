@@ -24,20 +24,23 @@ export interface SpotifyDevice {
   volume_percent: number | null;
 }
 
+// Track type (used for recommendations, queue, etc.)
+export interface Track {
+  id: string;
+  name: string;
+  artists: { id: string; name: string }[];
+  album: {
+    id: string;
+    name: string;
+    images: { url: string; width: number; height: number }[];
+  };
+  durationMs: number;
+}
+
 // Playback state (subset of SDK's PlaybackState)
 export interface PlaybackState {
   isPlaying: boolean;
-  track: {
-    id: string;
-    name: string;
-    artists: { id: string; name: string }[];
-    album: {
-      id: string;
-      name: string;
-      images: { url: string; width: number; height: number }[];
-    };
-    durationMs: number;
-  } | null;
+  track: Track | null;
   progressMs: number;
   device: SpotifyDevice | null;
 }
