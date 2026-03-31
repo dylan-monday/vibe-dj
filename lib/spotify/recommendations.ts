@@ -217,12 +217,18 @@ export async function getRecommendations(
   }
 
   return withErrorHandling(async () => {
-    const response = await client.recommendations.get({
-      seed_artists: seedArtists,
-      seed_tracks: seedTracks,
-      seed_genres: seedGenres,
-      ...params,
-    });
+    // Build request - only include non-empty seed arrays
+    const requestParams: Record<string, unknown> = { ...params };
+    if (seedArtists.length > 0) requestParams.seed_artists = seedArtists;
+    if (seedTracks.length > 0) requestParams.seed_tracks = seedTracks;
+    if (seedGenres.length > 0) requestParams.seed_genres = seedGenres;
+
+    // Must have at least one seed
+    if (!requestParams.seed_artists && !requestParams.seed_tracks && !requestParams.seed_genres) {
+      requestParams.seed_genres = ["pop"]; // Fallback
+    }
+
+    const response = await client.recommendations.get(requestParams as Parameters<typeof client.recommendations.get>[0]);
 
     // Filter out played tracks and excluded artists
     const excludedArtistNames = new Set(

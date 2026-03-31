@@ -9,9 +9,9 @@ import { usePlaybackStore } from "@/lib/stores/playback-store";
 import { useQueueStore } from "@/lib/stores/queue-store";
 import { getPlaybackState } from "@/lib/spotify/playback";
 
-const ACTIVE_POLL_INTERVAL = 3000; // 3 seconds when playing
-const PAUSED_POLL_INTERVAL = 10000; // 10 seconds when paused
-const MAX_BACKOFF = 30000; // Max 30 seconds
+const ACTIVE_POLL_INTERVAL = 5000; // 5 seconds when playing
+const PAUSED_POLL_INTERVAL = 15000; // 15 seconds when paused
+const MAX_BACKOFF = 60000; // Max 60 seconds
 
 export function usePlaybackPolling() {
   const { isAuthenticated } = useAuthStore();
